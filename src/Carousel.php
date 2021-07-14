@@ -7,14 +7,8 @@
 
 namespace gnixon\bootstrap5;
 
-use yii\base\JsonException;
-use yii\base\RuntimeException;
+use yii\base\InvalidConfigException;
 use yii\helpers\ArrayHelper;
-use yii\helpers\Html;
-
-#use function count;
-#use function implode;
-#use function is_string;
 
 /**
  * Carousel renders a carousel bootstrap javascript component.
@@ -22,8 +16,8 @@ use yii\helpers\Html;
  * For example:
  *
  * ```php
- * echo Carousel::widget()
- *     ->items([
+ * echo Carousel::widget([
+ *     'items' => [
  *         // the item contains only the image
  *         '<img src="http://twitter.github.io/bootstrap/assets/img/bootstrap-mdo-sfmoma-01.jpg"/>',
  *         // equivalent to the above
@@ -32,75 +26,34 @@ use yii\helpers\Html;
  *         [
  *             'content' => '<img src="http://twitter.github.io/bootstrap/assets/img/bootstrap-mdo-sfmoma-03.jpg"/>',
  *             'caption' => '<h4>This is title</h4><p>This is the caption text</p>',
- *             'captionOptions' => ['class' => ['d-none', 'd-md-block']],
+ *             'captionOptions' => ['class' => ['d-none', 'd-md-block']]
  *             'options' => [...],
  *         ],
- *     ]);
+ *     ]
+ * ]);
  * ```
+ *
+ * @see https://getbootstrap.com/docs/5.0/components/carousel/
+ * @author Antonio Ramirez <amigo.cobos@gmail.com>
+ * @author Simon Karlen <simi.albi@outlook.com>
  */
 class Carousel extends Widget
 {
-    private array $controls = [
+    /**
+     * @var array|false the labels for the previous and the next control buttons.
+     * If false, it means the previous and the next control buttons should not be displayed.
+     */
+    public $controls = [
         '<span class="carousel-control-prev-icon" aria-hidden="true"></span><span class="visually-hidden">Previous</span>',
         '<span class="carousel-control-next-icon" aria-hidden="true"></span><span class="visually-hidden">Next</span>',
     ];
-    private bool $encodeTags = false;
-    private bool $showIndicators = true;
-    private array $items = [];
-    private bool $crossfade = false;
-    private array $options = ['data-bs-ride' => 'carousel'];
-
-    protected function run(): string
-    {
-        if (!isset($this->options['id'])) {
-            $this->options['id'] = "{$this->getId()}-carousel";
-        }
-
-        /** @psalm-suppress InvalidArgument */
-        Html::addCssClass($this->options, ['widget' => 'carousel', 'slide']);
-
-        if ($this->crossfade) {
-            Html::addCssClass($this->options, ['crossfade' => 'carousel-fade']);
-        }
-
-        return Html::div(
-            $this->renderIndicators() . $this->renderItems() . $this->renderControls(),
-            $this->options
-        )->encode($this->encodeTags)->render();
-    }
-
     /**
-     * The labels for the previous and the next control buttons.
-     *
-     * If null, it means the previous and the next control buttons should not be displayed.
-     *
-     * @param array $value
-     *
-     * @return self
+     * @var bool whether carousel indicators (<ol> tag with anchors to items) should be displayed or not.
      */
-    public function controls(array $value): self
-    {
-        $new = clone $this;
-        $new->controls = $value;
-
-        return $new;
-    }
-
+    public $showIndicators = true;
     /**
-     * Animate slides with a fade transition instead of a slide. Defaults to `false`.
-     *
-     * @return self
-     */
-    public function withCrossfade(): self
-    {
-        $new = clone $this;
-        $new->crossfade = true;
-
-        return $new;
-    }
-
-    /**
-     * List of slides in the carousel. Each array element represents a single slide with the following structure:
+     * @var array list of slides in the carousel. Each array element represents a single
+     * slide with the following structure:
      *
      * ```php
      * [
@@ -112,105 +65,90 @@ class Carousel extends Widget
      *     'options' => [],
      * ]
      * ```
-     *
-     * @param array $value
-     *
-     * @return self
      */
-    public function items(array $value): self
-    {
-        $new = clone $this;
-        $new->items = $value;
+    public $items = [];
+    /**
+     * @var bool Animate slides with a fade transition instead of a slide. Defaults to `false`
+     */
+    public $crossfade = false;
+    /**
+     * {@inheritdoc}
+     */
+    public $options = ['data-bs-ride' => 'carousel'];
 
-        return $new;
+
+    /**
+     * Initializes the widget.
+     */
+    public function init()
+    {
+        parent::init();
+        Html::addCssClass($this->options, ['widget' => 'carousel slide']);
+        if ($this->crossfade) {
+            Html::addCssClass($this->options, ['animation' => 'carousel-fade']);
+        }
     }
 
     /**
-     * The HTML attributes for the container tag. The following special options are recognized.
-     *
-     * {@see Html::renderTagAttributes()} for details on how attributes are being rendered.
-     *
-     * @param array $value
-     *
-     * @return self
+     * {@inheritdoc}
+     * @throws InvalidConfigException
      */
-    public function options(array $value): self
+    public function run()
     {
-        $new = clone $this;
-        $new->options = $value;
-
-        return $new;
-    }
-
-    /**
-     * Whether carousel indicators (<ol> tag with anchors to items) should be displayed or not.
-     *
-     * @return self
-     */
-    public function withoutShowIndicators(): self
-    {
-        $new = clone $this;
-        $new->showIndicators = false;
-
-        return $new;
+        $this->registerPlugin('carousel');
+        return implode("\n", [
+                Html::beginTag('div', $this->options),
+                $this->renderIndicators(),
+                $this->renderItems(),
+                $this->renderControls(),
+                Html::endTag('div')
+            ]) . "\n";
     }
 
     /**
      * Renders carousel indicators.
+     * @return string the rendering result
      */
-    private function renderIndicators(): string
+    public function renderIndicators()
     {
         if ($this->showIndicators === false) {
             return '';
         }
-
         $indicators = [];
-
         for ($i = 0, $count = count($this->items); $i < $count; $i++) {
-            $options = ['data-bs-target' => '#' . $this->options['id'], 'data-bs-slide-to' => $i];
+            $options = ['data-target' => '#' . $this->options['id'], 'data-slide-to' => $i];
             if ($i === 0) {
-                /** @psalm-suppress InvalidArgument */
-                Html::addCssClass($options, ['active' => 'active']);
+                Html::addCssClass($options, ['activate' => 'active']);
             }
             $indicators[] = Html::tag('li', '', $options);
         }
 
-        $indicatorOptions = ['class' => ['carousel-indicators']];
-
-        return Html::tag('ol', implode("\n", $indicators), $indicatorOptions)
-            ->encode($this->encodeTags)
-            ->render();
+        return Html::tag('ol', implode("\n", $indicators), ['class' => ['carousel-indicators']]);
     }
 
     /**
-     * Renders carousel items as specified on {@see items}.
+     * Renders carousel items as specified on [[items]].
+     * @return string the rendering result
+     * @throws InvalidConfigException
      */
-    private function renderItems(): string
+    public function renderItems()
     {
         $items = [];
-
-        foreach ($this->items as $i => $iValue) {
-            $items[] = $this->renderItem($iValue, $i);
+        for ($i = 0, $count = count($this->items); $i < $count; $i++) {
+            $items[] = $this->renderItem($this->items[$i], $i);
         }
 
-        $itemOptions = ['class' => 'carousel-inner'];
-
-        return Html::div(implode("\n", $items), $itemOptions)
-            ->encode($this->encodeTags)
-            ->render();
+        return Html::tag('div', implode("\n", $items), ['class' => 'carousel-inner']);
     }
 
     /**
      * Renders a single carousel item
-     *
-     * @param array|string $item a single item from {@see items}
+     * @param string|array $item a single item from [[items]]
      * @param int $index the item index as the first item should be set to `active`
-     *
-     * @throws JsonException|RuntimeException if the item is invalid.
-     *
-     * @return string the rendering result.
+     * @return string the rendering result
+     * @throws InvalidConfigException if the item is invalid
      */
-    private function renderItem($item, int $index): string
+    public function renderItem($item, $index)
     {
         if (is_string($item)) {
             $content = $item;
@@ -219,62 +157,46 @@ class Carousel extends Widget
         } elseif (isset($item['content'])) {
             $content = $item['content'];
             $caption = ArrayHelper::getValue($item, 'caption');
-
             if ($caption !== null) {
                 $captionOptions = ArrayHelper::remove($item, 'captionOptions', []);
-                Html::addCssClass($captionOptions, ['captionOptions' => 'carousel-caption']);
+                Html::addCssClass($captionOptions, ['widget' => 'carousel-caption']);
 
-                $caption = Html::div($caption, $captionOptions)->encode($this->encodeTags)->render();
+                $caption = Html::tag('div', $caption, $captionOptions);
             }
-
             $options = ArrayHelper::getValue($item, 'options', []);
         } else {
-            throw new RuntimeException('The "content" option is required.');
+            throw new InvalidConfigException('The "content" option is required.');
         }
 
         Html::addCssClass($options, ['widget' => 'carousel-item']);
-
         if ($index === 0) {
-            Html::addCssClass($options, ['active' => 'active']);
+            Html::addCssClass($options, ['activate' => 'active']);
         }
 
-        return Html::div($content . "\n" . $caption, $options)
-            ->encode($this->encodeTags)
-            ->render();
+        return Html::tag('div', $content . "\n" . $caption, $options);
     }
 
     /**
      * Renders previous and next control buttons.
-     *
-     * @throws JsonException|RuntimeException if {@see controls} is invalid.
-     *
-     * @return string
+     * @throws InvalidConfigException if [[controls]] is invalid.
      */
-    private function renderControls(): string
+    public function renderControls()
     {
-        $controlsOptions0 = [
-            'class' => 'carousel-control-prev',
-            'data-bs-slide' => 'prev',
-            'role' => 'button',
-        ];
-
-        $controlsOptions1 = [
-            'class' => 'carousel-control-next',
-            'data-bs-slide' => 'next',
-            'role' => 'button',
-        ];
-
         if (isset($this->controls[0], $this->controls[1])) {
-            return Html::a($this->controls[0], '#' . $this->options['id'], $controlsOptions0)->encode($this->encodeTags) . "\n" .
-                Html::a($this->controls[1], '#' . $this->options['id'], $controlsOptions1)->encode($this->encodeTags);
-        }
-
-        if ($this->controls === []) {
+            return Html::a($this->controls[0], '#' . $this->options['id'], [
+                    'class' => 'carousel-control-prev',
+                    'data-slide' => 'prev',
+                    'role' => 'button'
+                ]) . "\n"
+                . Html::a($this->controls[1], '#' . $this->options['id'], [
+                    'class' => 'carousel-control-next',
+                    'data-slide' => 'next',
+                    'role' => 'button'
+                ]);
+        } elseif ($this->controls === false) {
             return '';
+        } else {
+            throw new InvalidConfigException('The "controls" property must be either false or an array of two elements.');
         }
-
-        throw new RuntimeException(
-            'The "controls" property must be either null or an array of two elements.'
-        );
     }
 }

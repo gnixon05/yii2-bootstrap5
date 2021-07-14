@@ -7,13 +7,6 @@
 
 namespace gnixon\bootstrap5;
 
-use yii\helpers\ArrayHelper;
-use yii\base\InvalidConfigException;
-use yii\helpers\Html;
-
-#use function implode;
-#use function is_array;
-
 /**
  * ButtonToolbar Combines sets of button groups into button toolbars for more complex components.
  * Use utility classes as needed to space out groups, buttons, and more.
@@ -22,118 +15,93 @@ use yii\helpers\Html;
  *
  * ```php
  * // a button toolbar with items configuration
- * echo ButtonToolbar::widget()
- *     ->buttonGroups([
+ * echo ButtonToolbar::widget([
+ *     'buttonGroups' => [
  *         [
  *             'buttons' => [
- *                 ['label' => '1', 'class' => ['btn-secondary']],
- *                 ['label' => '2', 'class' => ['btn-secondary']],
- *                 ['label' => '3', 'class' => ['btn-secondary']],
- *                 ['label' => '4', 'class' => ['btn-secondary']]
+ *                 ['label' => '1', 'options' => ['class' => ['btn-secondary']]],
+ *                 ['label' => '2', 'options' => ['class' => ['btn-secondary']]],
+ *                 ['label' => '3', 'options' => ['class' => ['btn-secondary']]],
+ *                 ['label' => '4', 'options' => ['class' => ['btn-secondary']]]
  *             ],
  *              'class' => ['mr-2']
  *         ],
  *         [
  *             'buttons' => [
- *                 ['label' => '5', 'class' => ['btn-secondary']],
- *                 ['label' => '6', 'class' => ['btn-secondary']],
- *                 ['label' => '7', 'class' => ['btn-secondary']]
+ *                 ['label' => '5', 'options' => ['class' => ['btn-secondary']]],
+ *                 ['label' => '6', 'options' => ['class' => ['btn-secondary']]],
+ *                 ['label' => '7', 'options' => ['class' => ['btn-secondary']]]
  *             ],
  *             'class' => ['mr-2']
  *         ],
  *         [
  *             'buttons' => [
- *                 ['label' => '8', 'class' => ['btn-secondary']]
+ *                 ['label' => '8', 'options' => ['class' => ['btn-secondary']]]
  *             ]
  *         ]
- *     ]);
+ *     ]
+ * ]);
  * ```
  *
  * Pressing on the button should be handled via JavaScript. See the following for details:
+ *
+ * @see https://getbootstrap.com/docs/5.0/components/buttons/
+ * @see https://getbootstrap.com/docs/5.0/components/button-group/#button-toolbar
+ *
+ * @author Simon Karlen <simi.albi@outlook.com>
  */
 class ButtonToolbar extends Widget
 {
-    private bool $encodeTags = false;
-    private array $buttonGroups = [];
-    private array $options = [];
-
-    protected function run(): string
-    {
-        if (!isset($this->options['id'])) {
-            $this->options['id'] = "{$this->getId()}-button-toolbar";
-        }
-
-        /** @psalm-suppress InvalidArgument */
-        Html::addCssClass($this->options, ['widget' => 'btn-toolbar']);
-
-        if (!isset($this->options['role'])) {
-            $this->options['role'] = 'toolbar';
-        }
-
-        return Html::div($this->renderButtonGroups(), $this->options)
-            ->encode($this->encodeTags)
-            ->render();
-    }
-
     /**
-     * List of buttons groups. Each array element represents a single group which can be specified as a string or an
-     * array of the following structure:
+     * @var array list of buttons groups. Each array element represents a single group
+     * which can be specified as a string or an array of the following structure:
      *
      * - buttons: array list of buttons. Either as array or string representation
      * - options: array optional, the HTML attributes of the button group.
      * - encodeLabels: bool whether to HTML-encode the button labels.
-     *
-     * @param array $value
-     *
-     * @return self
      */
-    public function buttonGroups(array $value): self
-    {
-        $new = clone $this;
-        $new->buttonGroups = $value;
+    public $buttonGroups = [];
 
-        return $new;
+
+    /**
+     * {@inheritdoc}
+     */
+    public function init()
+    {
+        parent::init();
+        Html::addCssClass($this->options, ['widget' => 'btn-toolbar']);
+        if (!isset($this->options['role'])) {
+            $this->options['role'] = 'toolbar';
+        }
     }
 
     /**
-     * The HTML attributes for the container tag. The following special options are recognized.
-     *
-     * {@see Html::renderTagAttributes()} for details on how attributes are being rendered.
-     *
-     * @param array $value
-     *
-     * @return self
+     * {@inheritdoc}
+     * @throws \Exception
      */
-    public function options(array $value): self
+    public function run()
     {
-        $new = clone $this;
-        $new->options = $value;
-
-        return $new;
+        BootstrapAsset::register($this->getView());
+        return Html::tag('div', $this->renderButtonGroups(), $this->options);
     }
 
     /**
-     * Generates the button groups that compound the toolbar as specified on {@see buttonGroups}.
-     *
-     * @throws InvalidConfigException
-     *
+     * Generates the button groups that compound the toolbar as specified on [[buttonGroups]].
      * @return string the rendering result.
+     * @throws \Exception
      */
-    private function renderButtonGroups(): string
+    protected function renderButtonGroups()
     {
         $buttonGroups = [];
-
         foreach ($this->buttonGroups as $group) {
             if (is_array($group)) {
+                $group['view'] = $this->getView();
+
                 if (!isset($group['buttons'])) {
                     continue;
                 }
 
-                $options = ArrayHelper::getValue($group, 'options', []);
-                $buttonGroups[] = ButtonGroup::widget()
-                    ->buttons($group['buttons'])
-                    ->options($options)
-                    ->render();
+                $buttonGroups[] = ButtonGroup::widget($group);
             } else {
                 $buttonGroups[] = $group;
             }

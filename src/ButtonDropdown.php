@@ -8,8 +8,7 @@
 namespace gnixon\bootstrap5;
 
 use yii\helpers\ArrayHelper;
-use yii\base\InvalidConfigException;
-use yii\helpers\Html;
+use yii\helpers\Url;
 
 /**
  * ButtonDropdown renders a group or split button dropdown bootstrap component.
@@ -18,315 +17,190 @@ use yii\helpers\Html;
  *
  * ```php
  * // a button group using Dropdown widget
- * echo ButtonDropdown::widget()
- *     ->label('Action')
- *     ->dropdown'([
+ * echo ButtonDropdown::widget([
+ *     'label' => 'Action',
+ *     'dropdown' => [
  *         'items' => [
  *             ['label' => 'DropdownA', 'url' => '/'],
  *             ['label' => 'DropdownB', 'url' => '#'],
  *         ],
- *     ]);
+ *     ],
+ * ]);
  * ```
+ * @see https://getbootstrap.com/docs/5.0/components/buttons/
+ * @see https://getbootstrap.com/docs/5.0/components/dropdowns/
+ * @author Antonio Ramirez <amigo.cobos@gmail.com>
  */
 class ButtonDropdown extends Widget
 {
     /**
      * The css class part of dropdown
      */
-    public const DIRECTION_DOWN = 'down';
-
+    const DIRECTION_DOWN = 'down';
     /**
      * The css class part of dropleft
      */
-    public const DIRECTION_LEFT = 'left';
-
+    const DIRECTION_LEFT = 'left';
     /**
      * The css class part of dropright
      */
-    public const DIRECTION_RIGHT = 'right';
-
+    const DIRECTION_RIGHT = 'right';
     /**
      * The css class part of dropup
      */
-    public const DIRECTION_UP = 'up';
+    const DIRECTION_UP = 'up';
 
-    private string $label = 'Button';
-    private array $options = [];
-    private array $buttonOptions = [];
-    private array $dropdown = [];
-    private string $direction = self::DIRECTION_DOWN;
-    private bool $split = false;
-    private string $tagName = 'button';
-    private bool $encodeLabels = true;
-    private bool $encodeTags = false;
-    private string $dropdownClass = Dropdown::class;
-    private bool $renderContainer = true;
+    /**
+     * @var string the button label
+     */
+    public $label = 'Button';
+    /**
+     * @var array the HTML attributes for the container tag. The following special options are recognized:
+     *
+     * - tag: string, defaults to "div", the name of the container tag.
+     *
+     * @see \yii\helpers\Html::renderTagAttributes() for details on how attributes are being rendered.
+     */
+    public $options = [];
+    /**
+     * @var array the HTML attributes of the button.
+     * @see \yii\helpers\Html::renderTagAttributes() for details on how attributes are being rendered.
+     */
+    public $buttonOptions = [];
+    /**
+     * @var array the configuration array for [[Dropdown]].
+     */
+    public $dropdown = [];
+    /**
+     * @var string the drop-direction of the widget
+     *
+     * Possible values are 'left', 'right', 'up', or 'down' (default)
+     */
+    public $direction = self::DIRECTION_DOWN;
+    /**
+     * @var bool whether to display a group of split-styled button group.
+     */
+    public $split = false;
+    /**
+     * @var string the tag to use to render the button
+     */
+    public $tagName = 'button';
+    /**
+     * @var bool whether the label should be HTML-encoded.
+     */
+    public $encodeLabel = true;
+    /**
+     * @var string name of a class to use for rendering dropdowns withing this widget. Defaults to [[Dropdown]].
+     */
+    public $dropdownClass = 'gnixon\bootstrap5\Dropdown';
+    /**
+     * @var bool whether to render the container using the [[options]] as HTML attributes. If set to `false`,
+     * the container element enclosing the button and dropdown will NOT be rendered.
+     */
+    public $renderContainer = true;
 
-    protected function run(): string
+
+    /**
+     * {@inheritdoc}
+     */
+    public function init()
     {
-        if (!isset($this->dropdown['items'])) {
-            return '';
+        parent::init();
+
+        if (!isset($this->buttonOptions['id'])) {
+            $this->buttonOptions['id'] = $this->options['id'] . '-button';
         }
+    }
 
-        /** Set options id to button options id to ensure correct css selector in plugin initialisation */
-        if (empty($this->options['id'])) {
-            $id = $this->getId();
-
-            $this->options['id'] = "{$id}-button-dropdown";
-            $this->buttonOptions['id'] = "{$id}-button";
-        }
-
+    /**
+     * {@inheritdoc}
+     * @throws \Exception
+     */
+    public function run()
+    {
         $html = $this->renderButton() . "\n" . $this->renderDropdown();
 
         if ($this->renderContainer) {
-            /** @psalm-suppress InvalidArgument */
             Html::addCssClass($this->options, ['widget' => 'drop' . $this->direction, 'btn-group']);
-
             $options = $this->options;
             $tag = ArrayHelper::remove($options, 'tag', 'div');
-            $html = Html::tag($tag, $html, $options)
-                ->encode($this->encodeTags)
-                ->render();
+            $html = Html::tag($tag, $html, $options);
         }
 
+        // Set options id to button options id to ensure correct css selector in plugin initialisation
+        $this->options['id'] = $this->buttonOptions['id'];
+
+        $this->registerPlugin('dropdown');
         return $html;
     }
 
     /**
-     * The HTML attributes of the button.
-     *
-     * {@see Html::renderTagAttributes()} for details on how attributes are being rendered.
-     *
-     * @param array $value
-     *
-     * @return self
-     */
-    public function buttonOptions(array $value): self
-    {
-        $new = clone $this;
-        $new->buttonOptions = $value;
-
-        return $new;
-    }
-
-    /**
-     * The drop-direction of the widget.
-     *
-     * Possible values are 'left', 'right', 'up', or 'down' (default)
-     *
-     * @param string $value
-     *
-     * @return self
-     */
-    public function direction(string $value): self
-    {
-        $new = clone $this;
-        $new->direction = $value;
-
-        return $new;
-    }
-
-    /**
-     * The configuration array for example:
-     *
-     * ```php
-     *    [
-     *        'items' => [
-     *            ['label' => 'DropdownA', 'url' => '/'],
-     *            ['label' => 'DropdownB', 'url' => '#'],
-     *        ],
-     *    ]
-     * ```
-     *
-     * {@see Dropdown}
-     *
-     * @param array $value
-     *
-     * @return self
-     */
-    public function dropdown(array $value): self
-    {
-        $new = clone $this;
-        $new->dropdown = $value;
-
-        return $new;
-    }
-
-    /**
-     * Name of a class to use for rendering dropdowns withing this widget. Defaults to {@see Dropdown}.
-     *
-     * @param string $value
-     *
-     * @return self
-     */
-    public function dropdownClass(string $value): self
-    {
-        $new = clone $this;
-        $new->dropdownClass = $value;
-
-        return $new;
-    }
-
-    /**
-     * When tags Labels HTML should not be encoded.
-     *
-     * @return self
-     */
-    public function withoutEncodeLabels(): self
-    {
-        $new = clone $this;
-        $new->encodeLabels = false;
-
-        return $new;
-    }
-
-    /**
-     * The button label.
-     *
-     * @param string $value
-     *
-     * @return self
-     */
-    public function label(string $value): self
-    {
-        $new = clone $this;
-        $new->label = $value;
-
-        return $new;
-    }
-
-    /**
-     * The HTML attributes for the container tag. The following special options are recognized.
-     *
-     * {@see Html::renderTagAttributes()} for details on how attributes are being rendered.
-     *
-     * @param array $value
-     *
-     * @return self
-     */
-    public function options(array $value): self
-    {
-        $new = clone $this;
-        $new->options = $value;
-
-        return $new;
-    }
-
-    /**
-     * Whether to render the container using the {@see options} as HTML attributes. If set to `false`, the container
-     * element enclosing the button and dropdown will NOT be rendered.
-     *
-     * @return self
-     */
-    public function withoutRenderContainer(): self
-    {
-        $new = clone $this;
-        $new->renderContainer = false;
-
-        return $new;
-    }
-
-    /**
-     * Whether to display a group of split-styled button group.
-     *
-     * @return self
-     */
-    public function split(): self
-    {
-        $new = clone $this;
-        $new->split = true;
-
-        return $new;
-    }
-
-    /**
-     * The tag to use to render the button.
-     *
-     * @param string $value
-     *
-     * @return self
-     */
-    public function tagName(string $value): self
-    {
-        $new = clone $this;
-        $new->tagName = $value;
-
-        return $new;
-    }
-
-    /**
      * Generates the button dropdown.
-     *
-     * @throws InvalidConfigException
-     *
      * @return string the rendering result.
+     * @throws \Exception
      */
-    private function renderButton(): string
+    protected function renderButton()
     {
-        Html::addCssClass($this->buttonOptions, ['buttonOptions' => 'btn']);
-
+        Html::addCssClass($this->buttonOptions, ['widget' => 'btn']);
         $label = $this->label;
-
-        if ($this->encodeLabels !== false) {
+        if ($this->encodeLabel) {
             $label = Html::encode($label);
         }
 
         if ($this->split) {
             $buttonOptions = $this->buttonOptions;
-
-            $this->buttonOptions['data-bs-toggle'] = 'dropdown';
+            $this->buttonOptions['data-toggle'] = 'dropdown';
             $this->buttonOptions['aria-haspopup'] = 'true';
             $this->buttonOptions['aria-expanded'] = 'false';
-
             Html::addCssClass($this->buttonOptions, ['toggle' => 'dropdown-toggle dropdown-toggle-split']);
-
             unset($buttonOptions['id']);
-
-            $splitButton = Button::widget()
-                ->label('<span class="sr-only">Toggle Dropdown</span>')
-                ->options($this->buttonOptions)
-                ->withoutEncodeLabels()
-                ->render();
+            $splitButton = Button::widget([
+                'label' => '<span class="sr-only">Toggle Dropdown</span>',
+                'encodeLabel' => false,
+                'options' => $this->buttonOptions,
+                'view' => $this->getView(),
+            ]);
         } else {
             $buttonOptions = $this->buttonOptions;
-
             Html::addCssClass($buttonOptions, ['toggle' => 'dropdown-toggle']);
-
-            $buttonOptions['data-bs-toggle'] = 'dropdown';
+            $buttonOptions['data-toggle'] = 'dropdown';
             $buttonOptions['aria-haspopup'] = 'true';
             $buttonOptions['aria-expanded'] = 'false';
             $splitButton = '';
         }
 
-        if (!isset($buttonOptions['href']) && ($this->tagName === 'a')) {
-            $buttonOptions['href'] = '#';
-            $buttonOptions['role'] = 'button';
+        if (isset($buttonOptions['href'])) {
+            if (is_array($buttonOptions['href'])) {
+                $buttonOptions['href'] = Url::to($buttonOptions['href']);
+            }
+        } else {
+            if ($this->tagName === 'a') {
+                $buttonOptions['href'] = '#';
+                $buttonOptions['role'] = 'button';
+            }
         }
 
-        $button = Button::widget()->label($label)->options($buttonOptions)->tagName($this->tagName);
-
-        if ($this->encodeLabels === false) {
-            $button = $button->withoutEncodeLabels();
-        }
-
-        return $button->render() . "\n" . $splitButton;
+        return Button::widget([
+                'tagName' => $this->tagName,
+                'label' => $label,
+                'options' => $buttonOptions,
+                'encodeLabel' => false,
+                'view' => $this->getView(),
+            ]) . "\n" . $splitButton;
     }
 
     /**
      * Generates the dropdown menu.
-     *
      * @return string the rendering result.
+     * @throws \Exception
      */
-    private function renderDropdown(): string
+    protected function renderDropdown()
     {
+        $config = $this->dropdown;
+        $config['clientOptions'] = false;
+        $config['view'] = $this->getView();
+        /** @var Widget $dropdownClass */
         $dropdownClass = $this->dropdownClass;
-
-        $dropdown = $dropdownClass::widget()->items($this->dropdown['items']);
-
-        if ($this->encodeLabels === false) {
-            $dropdown = $dropdown->withoutEncodeLabels();
-        }
-
-        return $dropdown->render();
+        return $dropdownClass::widget($config);
     }
 }

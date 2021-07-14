@@ -33,5 +33,9 @@
       "gnixon\\bootstrap5\\": "src"
     }
   },
-  "extra": {}
+  "extra": {
+    "branch-alias": {
+      "dev-master": "1.0.x-dev"
+    }
+  }
 }

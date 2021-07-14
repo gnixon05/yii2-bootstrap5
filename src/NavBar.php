@@ -7,420 +7,216 @@
 
 namespace gnixon\bootstrap5;
 
-use yii\base\JsonException;
+use Yii;
 use yii\helpers\ArrayHelper;
-use yii\helpers\Html;
 
 /**
  * NavBar renders a navbar HTML component.
  *
- * Any content enclosed between the {@see begin()} and {@see end()} calls of NavBar is treated as the content of the
- * navbar. You may use widgets such as {@see Nav} or {@see \Yiisoft\Widget\Menu} to build up such content. For example,
+ * Any content enclosed between the [[begin()]] and [[end()]] calls of NavBar
+ * is treated as the content of the navbar. You may use widgets such as [[Nav]]
+ * or [[\yii\widgets\Menu]] to build up such content. For example,
  *
  * ```php
- *    if ($user->getId() !== null) {
- *        $menuItems = [
- *            [
- *                'label' => 'About',
- *                'url' => '/about',
- *            ],
- *            [
- *                'label' => 'Contact',
- *                'url' => '/contact',
- *            ],
- *            [
- *                'label' => 'Logout' . ' ' . '(' . $user->getUsername() . ')',
- *                'url' => '/logout'
- *            ],
- *        ];
- *    } else {
- *        $menuItems = [
- *            [
- *                'label' => 'About',
- *                'url' => '/about',
- *            ],
- *            [
- *                'label' => 'Contact',
- *                'url' => '/contact',
- *            ],
- *            [
- *                'label' => 'Login',
- *                'url' => '/login',
- *            ],
- *        ];
- *    }
+ * use gnixon\bootstrap5\NavBar;
+ * use gnixon\bootstrap5\Nav;
  *
- *    <?php NavBar::widget()
- *        ->brandText('My Application Basic')
- *        ->brandUrl('/')
- *        ->options([
- *            'class' => 'navbar navbar-dark bg-dark navbar-expand-lg text-white',
- *        ])
- *        ->begin();
- *
- *        echo Nav::widget()
- *            ->currentPath($currentPath)
- *            ->items($menuItems)
- *            ->options([
- *                'class' => 'navbar-nav float-right ml-auto'
- *            ]);
- *
- *    echo NavBar::end(); ?>
- * ```
- * Note: $currentPath it must be injected from each controller to the main controller.
- *
- * SiteController.php
- *
- * ```php
- *
- *    public function index(ServerRequestInterface $request): ResponseInterface
- *    {
- *        $response = $this->responseFactory->createResponse();
- *        $currentPath = $request->getUri()->getPath();
- *        $output = $this->render('index', ['currentPath' => $currentPath]);
- *        $response->getBody()->write($output);
- *
- *        return $response;
- *    }
+ * NavBar::begin(['brandLabel' => 'NavBar Test']);
+ * echo Nav::widget([
+ *     'items' => [
+ *         ['label' => 'Home', 'url' => ['/site/index']],
+ *         ['label' => 'About', 'url' => ['/site/about']],
+ *     ],
+ *     'options' => ['class' => 'navbar-nav'],
+ * ]);
+ * NavBar::end();
  * ```
  *
- * Controller.php
- *
- * ```php
- *    private function renderContent($content, array $parameters = []): string
- *    {
- *        $user = $this->user->getIdentity();
- *        $layout = $this->findLayoutFile($this->layout);
- *
- *        if ($layout !== null) {
- *            return $this->view->renderFile(
- *                $layout,
- *                    [
- *                        'aliases' => $this->aliases,
- *                        'content' => $content,
- *                        'user' => $user,
- *                        'params' => $this->params,
- *                        'currentPath' => !isset($parameters['currentPath']) ?: $parameters['currentPath']
- *                    ],
- *                $this
- *            );
- *        }
- *
- *        return $content;
- *    }
- * ```
+ * @see https://getbootstrap.com/docs/4.5/components/navbar/
+ * @author Antonio Ramirez <amigo.cobos@gmail.com>
+ * @author Alexander Kochetov <creocoder@gmail.com>
  */
 class NavBar extends Widget
 {
-    private array $collapseOptions = [];
-    private string $brandText = '';
-    private string $brandImage = '';
-    private string $brandUrl = '/';
-    private array $brandOptions = [];
-    private string $screenReaderToggleText = 'Toggle navigation';
-    private string $togglerContent = '<span class="navbar-toggler-icon"></span>';
-    private array $togglerOptions = [];
-    private bool $renderInnerContainer = true;
-    private array $innerContainerOptions = [];
-    private array $options = [];
-    private bool $encodeTags = false;
+    /**
+     * @var array the HTML attributes for the widget container tag. The following special options are recognized:
+     *
+     * - tag: string, defaults to "nav", the name of the container tag.
+     *
+     * @see \yii\helpers\Html::renderTagAttributes() for details on how attributes are being rendered.
+     */
+    public $options = [];
+    /**
+     * @var array the HTML attributes for the container tag. The following special options are recognized:
+     *
+     * - tag: string, defaults to "div", the name of the container tag.
+     *
+     * @see \yii\helpers\Html::renderTagAttributes() for details on how attributes are being rendered.
+     */
+    public $collapseOptions = [];
+    /**
+     * @var string|bool the text of the brand or false if it's not used. Note that this is not HTML-encoded.
+     * @see https://getbootstrap.com/docs/4.5/components/navbar/
+     */
+    public $brandLabel = false;
+    /**
+     * @var string|bool src of the brand image or false if it's not used. Note that this param will override `$this->brandLabel` param.
+     * @see https://getbootstrap.com/docs/4.5/components/navbar/
+     * @since 2.0.8
+     */
+    public $brandImage = false;
+    /**
+     * @var array|string|bool $url the URL for the brand's hyperlink tag. This parameter will be processed by [[\yii\helpers\Url::to()]]
+     * and will be used for the "href" attribute of the brand link. Default value is false that means
+     * [[\yii\web\Application::homeUrl]] will be used.
+     * You may set it to `null` if you want to have no link at all.
+     */
+    public $brandUrl = false;
+    /**
+     * @var array the HTML attributes of the brand link.
+     * @see \yii\helpers\Html::renderTagAttributes() for details on how attributes are being rendered.
+     */
+    public $brandOptions = [];
+    /**
+     * @var string text to show for screen readers for the button to toggle the navbar.
+     */
+    public $screenReaderToggleText = 'Toggle navigation';
+    /**
+     * @var string the toggle button content. Defaults to bootstrap 4 default `<span class="navbar-toggler-icon"></span>`
+     */
+    public $togglerContent = '<span class="navbar-toggler-icon"></span>';
+    /**
+     * @var array the HTML attributes of the navbar toggler button.
+     * @see \yii\helpers\Html::renderTagAttributes() for details on how attributes are being rendered.
+     */
+    public $togglerOptions = [];
+    /**
+     * @var bool whether the navbar content should be included in an inner div container which by default
+     * adds left and right padding. Set this to false for a 100% width navbar.
+     */
+    public $renderInnerContainer = true;
+    /**
+     * @var array the HTML attributes of the inner container.
+     * @see \yii\helpers\Html::renderTagAttributes() for details on how attributes are being rendered.
+     */
+    public $innerContainerOptions = [];
+    /**
+     * {@inheritdoc}
+     */
+    public $clientOptions = false;
 
-    public function begin(): string
+
+    /**
+     * Initializes the widget.
+     */
+    public function init()
     {
-        parent::begin();
-
-        if (!isset($this->options['id'])) {
-            $this->options['id'] = "{$this->getId()}-navbar";
-            $this->collapseOptions['id'] = "{$this->getId()}-collapse";
-        }
-
-        if (empty($this->options['class'])) {
-            Html::addCssClass($this->options, ['widget' => 'navbar', 'navbar-expand-lg', 'navbar-light', 'bg-light']);
+        parent::init();
+        if (!isset($this->options['class']) || empty($this->options['class'])) {
+            Html::addCssClass($this->options, [
+                'widget' => 'navbar',
+                'toggle' => 'navbar-expand-lg',
+                'navbar-light',
+                'bg-light'
+            ]);
         } else {
-            Html::addCssClass($this->options, ['widget' => 'navbar']);
+            Html::addCssClass($this->options, [
+                'widget' => 'navbar'
+            ]);
         }
-
-        $navTag = ArrayHelper::remove($this->options, 'tag', 'nav');
-
+        $navOptions = $this->options;
+        $navTag = ArrayHelper::remove($navOptions, 'tag', 'nav');
+        $brand = '';
+        
         if (!isset($this->innerContainerOptions['class'])) {
             Html::addCssClass($this->innerContainerOptions, ['innerContainerOptions' => 'container']);
         }
-
+        if (!isset($this->collapseOptions['id'])) {
+            $this->collapseOptions['id'] = "{$this->options['id']}-collapse";
+        }
+        if ($this->brandImage !== false) {
+            $this->brandLabel = Html::img($this->brandImage);
+        }
+        if ($this->brandLabel !== false) {
+            Html::addCssClass($this->brandOptions, ['widget' => 'navbar-brand']);
+            if ($this->brandUrl === null) {
+                $brand = Html::tag('span', $this->brandLabel, $this->brandOptions);
+            } else {
+                $brand = Html::a(
+                    $this->brandLabel,
+                    $this->brandUrl === false ? Yii::$app->homeUrl : $this->brandUrl,
+                    $this->brandOptions
+                );
+            }
+        }
         Html::addCssClass($this->collapseOptions, ['collapse' => 'collapse', 'widget' => 'navbar-collapse']);
-
         $collapseTag = ArrayHelper::remove($this->collapseOptions, 'tag', 'div');
 
-        $htmlStart = Html::openTag($navTag, $this->options) . "\n";
 
+        $htmlStart = Html::beginTag($navTag, $this->options) . "\n";
         if ($this->renderInnerContainer) {
-            $htmlStart .= Html::openTag('div', $this->innerContainerOptions) . "\n";
+            $htmlStart .= Html::beginTag('div', $this->innerContainerOptions) . "\n";
         }
-
-        $htmlStart .= $this->renderBrand() . "\n";
+        $htmlStart .= $brand . "\n";
         $htmlStart .= $this->renderToggleButton() . "\n";
-        $htmlStart .= Html::openTag($collapseTag, $this->collapseOptions) . "\n";
+        $htmlStart .= Html::beginTag($collapseTag, $this->collapseOptions) . "\n";
 
-        return $htmlStart;
+        echo $htmlStart;
     }
 
-    protected function run(): string
+    /**
+     * Renders the widget.
+     */
+    public function run()
     {
+
         $tag = ArrayHelper::remove($this->collapseOptions, 'tag', 'div');
 
-        $htmlRun = Html::closeTag($tag) . "\n";
+        $htmlRun = Html::endTag($tag) . "\n";
 
         if ($this->renderInnerContainer) {
-            $htmlRun .= Html::closeTag('div') . "\n";
+            $htmlRun .= Html::endTag('div') . "\n";
         }
 
         $tag = ArrayHelper::remove($this->options, 'tag', 'nav');
 
-        $htmlRun .= Html::closeTag($tag);
+        $htmlRun .= Html::endTag($tag);
 
-        return $htmlRun;
-    }
+        echo $htmlRun;
 
-    /**
-     * The HTML attributes for the container tag. The following special options are recognized.
-     *
-     * @param array $value
-     *
-     * @return self
-     *
-     * {@see Html::renderTagAttributes()} for details on how attributes are being rendered.
-     */
-    public function collapseOptions(array $value): self
-    {
-        $new = clone $this;
-        $new->collapseOptions = $value;
-
-        return $new;
-    }
-
-    /**
-     * The text of the brand or empty if it's not used. Note that this is not HTML-encoded.
-     *
-     * @param string $value
-     *
-     * @return self
-     *
-     * @link https://getbootstrap.com/docs/5.0/components/navbar/#text
-     */
-    public function brandText(string $value): self
-    {
-        $new = clone $this;
-        $new->brandText = $value;
-
-        return $new;
-    }
-
-    /**
-     * Src of the brand image or empty if it's not used. Note that this param will override `$this->brandText` param.
-     *
-     * @param string $value
-     *
-     * @return self
-     *
-     * @link https://getbootstrap.com/docs/5.0/components/navbar/#image
-     */
-    public function brandImage(string $value): self
-    {
-        $new = clone $this;
-        $new->brandImage = $value;
-
-        return $new;
-    }
-
-    /**
-     * The URL for the brand's hyperlink tag and will be used for the "href" attribute of the brand link. Default value
-     * is "/". You may set it to empty string if you want no link at all.
-     *
-     * @param string $value
-     *
-     * @return self
-     *
-     * @link https://getbootstrap.com/docs/5.0/components/navbar/#text
-     */
-    public function brandUrl(string $value): self
-    {
-        $new = clone $this;
-        $new->brandUrl = $value;
-
-        return $new;
-    }
-
-    /**
-     * The HTML attributes of the brand link.
-     *
-     * {@see Html::renderTagAttributes()} for details on how attributes are being rendered.
-     *
-     * @param array $value
-     *
-     * @return self
-     */
-    public function brandOptions(array $value): self
-    {
-        $new = clone $this;
-        $new->brandOptions = $value;
-
-        return $new;
-    }
-
-    /**
-     * Text to show for screen readers for the button to toggle the navbar.
-     *
-     * @param string $value
-     *
-     * @return self
-     */
-    public function screenReaderToggleText(string $value): self
-    {
-        $new = clone $this;
-        $new->screenReaderToggleText = $value;
-
-        return $new;
-    }
-
-    /**
-     * The toggle button content. Defaults to bootstrap 4 default `<span class="navbar-toggler-icon"></span>`.
-     *
-     * @param string $value
-     *
-     * @return self
-     */
-    public function togglerContent(string $value): self
-    {
-        $new = clone $this;
-        $new->togglerContent = $value;
-
-        return $new;
-    }
-
-    /**
-     * The HTML attributes of the navbar toggler button.
-     *
-     * {@see Html::renderTagAttributes()} for details on how attributes are being rendered.
-     *
-     * @param array $value
-     *
-     * @return self
-     */
-    public function togglerOptions(array $value): self
-    {
-        $new = clone $this;
-        $new->togglerOptions = $value;
-
-        return $new;
-    }
-
-    /**
-     * This for a 100% width navbar.
-     *
-     * @return self
-     */
-    public function withoutRenderInnerContainer(): self
-    {
-        $new = clone $this;
-        $new->renderInnerContainer = false;
-
-        return $new;
-    }
-
-    /**
-     * The HTML attributes of the inner container.
-     *
-     * {@see Html::renderTagAttributes()} for details on how attributes are being rendered.
-     *
-     * @param array $value
-     *
-     * @return self
-     */
-    public function innerContainerOptions(array $value): self
-    {
-        $new = clone $this;
-        $new->innerContainerOptions = $value;
-
-        return $new;
-    }
-
-    /**
-     * The HTML attributes for the widget container tag. The following special options are recognized.
-     *
-     * {@see Html::renderTagAttributes()} for details on how attributes are being rendered.
-     *
-     * @param array $value
-     *
-     * @return self
-     */
-    public function options(array $value): self
-    {
-        $new = clone $this;
-        $new->options = $value;
-
-        return $new;
-    }
-
-    private function renderBrand(): string
-    {
-        $brand = '';
-        $brandImage = '';
-
-        Html::addCssClass($this->brandOptions, ['widget' => 'navbar-brand']);
-
-        if ($this->brandImage !== '') {
-            $brandImage = Html::img($this->brandImage)->render();
-            $brand = Html::a($brandImage, $this->brandUrl, $this->brandOptions)
-                ->encode($this->encodeTags)
-                ->render();
-        }
-
-        if ($this->brandText !== '') {
-            $brandText = $this->brandText;
-
-            if ($brandImage !== '') {
-                $brandText = $brandImage . $this->brandText;
-            }
-
-            if (empty($this->brandUrl)) {
-                $brand = Html::span($brandText, $this->brandOptions)->render();
-            } else {
-                $brand = Html::a($brandText, $this->brandUrl, $this->brandOptions)
-                    ->encode($this->encodeTags)
-                    ->render();
-            }
-        }
-
-        return $brand;
+        BootstrapPluginAsset::register($this->getView());
     }
 
     /**
      * Renders collapsible toggle button.
-     *
-     * @throws JsonException
-     *
      * @return string the rendering toggle button.
-     *
-     * @link https://getbootstrap.com/docs/5.0/components/navbar/#toggler
      */
-    private function renderToggleButton(): string
+    protected function renderToggleButton()
     {
-        Html::addCssClass($this->togglerOptions, ['widget' => 'navbar-toggler']);
-
+        $options = $this->togglerOptions;
+        Html::addCssClass($options, ['widget' => 'navbar-toggler']);
         return Html::button(
             $this->togglerContent,
-            array_merge(
-                $this->togglerOptions,
-                [
-                    'type' => 'button',
-                    'data' => [
-                        'bs-toggle' => 'collapse',
-                        'bs-target' => '#' . $this->collapseOptions['id'],
-                    ],
-                    'aria-controls' => $this->collapseOptions['id'],
-                    'aria-expanded' => 'false',
-                    'aria-label' => $this->screenReaderToggleText,
-                ]
-            )
-        )->encode($this->encodeTags)->render();
+            ArrayHelper::merge($options, [
+                'type' => 'button',
+                'data' => [
+                    'bs-toggle' => 'collapse',
+                    'bs-target' => '#' . $this->collapseOptions['id'],
+                ],
+                'aria-controls' => $this->collapseOptions['id'],
+                'aria-expanded' => 'false',
+                'aria-label' => $this->screenReaderToggleText,
+            ])
+        );
+    }
+
+    /**
+     * Container options setter for backwards compatibility
+     * @param array $collapseOptions
+     * @deprecated
+     */
+    public function setContainerOptions($collapseOptions)
+    {
+        $this->collapseOptions = $collapseOptions;
     }
 }

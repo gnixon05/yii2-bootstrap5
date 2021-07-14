@@ -7,304 +7,202 @@
 
 namespace gnixon\bootstrap5;
 
-use yii\base\JsonException;
+use Yii;
 use yii\helpers\ArrayHelper;
-use yii\helpers\Html;
-
-#use function array_merge;
 
 /**
- * Toasts renders a toast bootstrap widget.
+ * Toasts renders an toast bootstrap component.
  *
  * For example,
  *
  * ```php
- * echo Toast::widget()
- *     ->title('Hello world!')
- *     ->dateTime('a minute ago')
- *     ->body('Say hello...')
- *     ->begin();
+ * echo Toast::widget([
+ *     'title' => 'Hello world!',
+ *     'dateTime' => 'now',
+ *     'body' => 'Say hello...',
+ * ]);
  * ```
  *
- * The following example will show the content enclosed between the {@see begin()}
- * and {@see end()} calls within the toast box:
+ * The following example will show the content enclosed between the [[begin()]]
+ * and [[end()]] calls within the toast box:
  *
  * ```php
- * echo Toast::widget()
- *     ->title('Hello world!')
- *     ->dateTime('a minute ago')
- *     ->begin();
+ * Toast::begin([
+ *     'title' => 'Hello world!',
+ *     'dateTime' => 'now'
+ * ]);
  *
  * echo 'Say hello...';
  *
- * echo Toast::end();
+ * Toast::end();
  * ```
  *
  * @see https://getbootstrap.com/docs/5.0/components/toasts/
+ * @author Simon Karlen <simi.albi@outlook.com>
  */
 class Toast extends Widget
 {
-    private string $body = '';
-    private string $title = '';
-    private string $dateTime = '';
-    private array $closeButton = [];
-    private array $titleOptions = [];
-    private array $dateTimeOptions = [];
-    private array $headerOptions = [];
-    private array $bodyOptions = [];
-    private array $options = [];
-    private bool $encodeTags = false;
-
-    public function begin(): string
-    {
-        parent::begin();
-
-        if (!isset($this->options['id'])) {
-            $this->options['id'] = "{$this->getId()}-toast";
-        }
-
-        $this->initOptions();
-
-        return
-            Html::openTag('div', $this->options) . "\n" .
-            $this->renderHeader() . "\n" .
-            $this->renderBodyBegin();
-    }
-
-    protected function run(): string
-    {
-        return $this->renderBodyEnd() . Html::closeTag('div');
-    }
-
     /**
-     * {@see Html::renderTagAttributes()} for details on how attributes are being rendered.
-     *
-     * @param array $value Body options.
-     *
-     * @return self
+     * @var string|null the body content in the alert component. Note that anything between
+     * the [[begin()]] and [[end()]] calls of the Toast widget will also be treated
+     * as the body content, and will be rendered before this.
      */
-    public function bodyOptions(array $value): self
-    {
-        $new = clone $this;
-        $new->bodyOptions = $value;
-
-        return $new;
-    }
-
+    public $body;
     /**
-     * The options for rendering the close button tag.
-     *
-     * The close button is displayed in the header of the toast window. Clicking on the button will hide the toast
-     * window. If {@see closeButtonEnabled} is false, no close button will be rendered.
+     * @var string|null The title content in the toast.
+     */
+    public $title;
+    /**
+     * @var int|string|\DateTime|\DateTimeInterface|\DateInterval|false The date time the toast message references to.
+     * This will be formatted as relative time (via formatter component). It will be omitted if
+     * set to `false` (default).
+     */
+    public $dateTime = false;
+    /**
+     * @var array the options for rendering the close button tag.
+     * The close button is displayed in the header of the toast. Clicking on the button will hide the toast.
      *
      * The following special options are supported:
      *
      * - tag: string, the tag name of the button. Defaults to 'button'.
      * - label: string, the label of the button. Defaults to '&times;'.
      *
-     * The rest of the options will be rendered as the HTML attributes of the button tag. Please refer to the
-     * [Toast plugin help](https://getbootstrap.com/docs/5.0/components/toasts/) for the supported HTML attributes.
-     *
-     * @param array $value
-     *
-     * @return self
+     * The rest of the options will be rendered as the HTML attributes of the button tag.
+     * Please refer to the [Toast documentation](https://getbootstrap.com/docs/4.5/components/toasts/)
+     * for the supported HTML attributes.
      */
-    public function closeButton(array $value): self
-    {
-        $new = clone $this;
-        $new->closeButton = $value;
+    public $closeButton = [];
+    /**
+     * @var array additional title options
+     *
+     * The following special options are supported:
+     *
+     * - tag: string, the tag name of the button. Defaults to 'strong'.
+     *
+     * @see \yii\helpers\Html::renderTagAttributes() for details on how attributes are being rendered.
+     */
+    public $titleOptions = [];
+    /**
+     * @var array additional date time part options
+     *
+     * The following special options are supported:
+     *
+     * - tag: string, the tag name of the button. Defaults to 'small'.
+     *
+     * @see \yii\helpers\Html::renderTagAttributes() for details on how attributes are being rendered.
+     */
+    public $dateTimeOptions = [];
+    /**
+     * @var array additional header options
+     * @see \yii\helpers\Html::renderTagAttributes() for details on how attributes are being rendered.
+     */
+    public $headerOptions = [];
+    /**
+     * @var array body options
+     * @see \yii\helpers\Html::renderTagAttributes() for details on how attributes are being rendered.
+     */
+    public $bodyOptions = [];
 
-        return $new;
+
+    /**
+     * {@inheritdoc}
+     */
+    public function init()
+    {
+        parent::init();
+
+        $this->initOptions();
+
+        echo Html::beginTag('div', $this->options) . "\n";
+        echo $this->renderHeader() . "\n";
+        echo $this->renderBodyBegin() . "\n";
     }
 
     /**
-     * The date/time content in the toast window.
-     *
-     * @param string $value
-     *
-     * @return self
+     * {@inheritdoc}
      */
-    public function dateTime(string $value): self
+    public function run()
     {
-        $new = clone $this;
-        $new->dateTime = $value;
+        echo "\n" . $this->renderBodyEnd();
+        echo "\n" . Html::endTag('div');
 
-        return $new;
+        $this->registerPlugin('toast');
     }
 
     /**
-     * Additional DateTime options.
-     *
-     * @param array $value
-     *
-     * @return self
-     *
-     * {@see Html::renderTagAttributes()} for details on how attributes are being rendered.
-     */
-    public function dateTimeOptions(array $value): self
-    {
-        $new = clone $this;
-        $new->dateTimeOptions = $value;
-
-        return $new;
-    }
-
-    /**
-     * Additional header options.
-     *
-     * @param array $value
-     *
-     * @return self
-     *
-     * {@see Html::renderTagAttributes()} for details on how attributes are being rendered.
-     */
-    public function headerOptions(array $value): self
-    {
-        $new = clone $this;
-        $new->headerOptions = $value;
-
-        return $new;
-    }
-
-    /**
-     * @param array $value the HTML attributes for the widget container tag. The following special options are
-     * recognized.
-     *
-     * @return self
-     *
-     * {@see Html::renderTagAttributes()} for details on how attributes are being rendered.
-     */
-    public function options(array $value): self
-    {
-        $new = clone $this;
-        $new->options = $value;
-
-        return $new;
-    }
-
-    /**
-     * The title content in the toast window.
-     *
-     * @param string $value
-     *
-     * @return self
-     */
-    public function title(string $value): self
-    {
-        $new = clone $this;
-        $new->title = $value;
-
-        return $new;
-    }
-
-    /**
-     * Additional title options.
-     *
-     * {@see Html::renderTagAttributes()} for details on how attributes are being rendered.
-     *
-     * @param array $value
-     *
-     * @return self
-     */
-    public function titleOptions(array $value): self
-    {
-        $new = clone $this;
-        $new->titleOptions = $value;
-
-        return $new;
-    }
-
-    /**
-     * Renders the header HTML markup of the toast.
-     *
-     * @throws JsonException
-     *
+     * Renders the header HTML markup of the modal
      * @return string the rendering result
      */
-    private function renderHeader(): string
+    protected function renderHeader()
     {
         $button = $this->renderCloseButton();
         $tag = ArrayHelper::remove($this->titleOptions, 'tag', 'strong');
-        Html::addCssClass($this->titleOptions, ['widget' => 'me-auto']);
-        $title = Html::tag($tag, $this->title, $this->titleOptions)->encode($this->encodeTags)->render();
+        Html::addCssClass($this->titleOptions, ['widget' => 'mr-auto']);
+        $title = Html::tag($tag, $this->title === null ? '' : $this->title, $this->titleOptions);
 
-        if ($this->dateTime !== '') {
+        if ($this->dateTime !== false) {
             $tag = ArrayHelper::remove($this->dateTimeOptions, 'tag', 'small');
-            $title .= "\n" . Html::tag($tag, $this->dateTime, $this->dateTimeOptions)->encode($this->encodeTags);
+            Html::addCssClass($this->dateTimeOptions, ['widget' => 'text-muted']);
+            $title .= "\n" . Html::tag($tag, Yii::$app->formatter->asRelativeTime($this->dateTime), $this->dateTimeOptions);
         }
 
         $title .= "\n" . $button;
 
         Html::addCssClass($this->headerOptions, ['widget' => 'toast-header']);
-        return Html::div("\n" . $title . "\n", $this->headerOptions)
-            ->encode($this->encodeTags)
-            ->render();
+        return Html::tag('div', "\n" . $title . "\n", $this->headerOptions);
     }
 
     /**
      * Renders the opening tag of the toast body.
-     *
-     * @throws JsonException
-     *
      * @return string the rendering result
      */
-    private function renderBodyBegin(): string
+    protected function renderBodyBegin()
     {
         Html::addCssClass($this->bodyOptions, ['widget' => 'toast-body']);
-        return Html::openTag('div', $this->bodyOptions);
+        return Html::beginTag('div', $this->bodyOptions);
     }
 
     /**
-     * Renders the closing tag of the toast body.
-     *
+     * Renders the toast body and the close button (if any).
      * @return string the rendering result
      */
-    private function renderBodyEnd(): string
+    protected function renderBodyEnd()
     {
-        return $this->body . "\n" . Html::closeTag('div');
+        return $this->body . "\n" . Html::endTag('div');
     }
 
     /**
      * Renders the close button.
-     *
-     * @throws JsonException
-     *
      * @return string the rendering result
      */
-    private function renderCloseButton(): string
+    protected function renderCloseButton()
     {
         $tag = ArrayHelper::remove($this->closeButton, 'tag', 'button');
-        $label = ArrayHelper::remove(
-            $this->closeButton,
-            'label',
-            Html::tag('span', '&times;', ['aria-hidden' => 'true'])->encode(false)->render()
-        );
+        $label = ArrayHelper::remove($this->closeButton, 'label', Html::tag('span', '&times;', [
+            'aria-hidden' => 'true'
+        ]));
 
-        return Html::tag($tag, "\n" . $label . "\n", $this->closeButton)
-            ->encode($this->encodeTags)
-            ->render();
+        return Html::tag($tag, "\n" . $label . "\n", $this->closeButton);
     }
 
     /**
      * Initializes the widget options.
-     *
      * This method sets the default values for various options.
      */
-    private function initOptions(): void
+    protected function initOptions()
     {
         Html::addCssClass($this->options, ['widget' => 'toast']);
 
         $this->closeButton = array_merge([
             'aria' => ['label' => 'Close'],
-            'data' => ['bs-dismiss' => 'toast'],
-            'class' => ['widget' => 'btn-close'],
+            'data' => ['dismiss' => 'toast'],
+            'class' => ['widget' => 'ml-2 mb-1 close'],
             'type' => 'button',
         ], $this->closeButton);
 
         if (!isset($this->options['role'])) {
             $this->options['role'] = 'alert';
         }
-
         if (!isset($this->options['aria']) && !isset($this->options['aria-live'])) {
             $this->options['aria'] = [
                 'live' => 'assertive',

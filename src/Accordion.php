@@ -7,185 +7,97 @@
 
 namespace gnixon\bootstrap5;
 
-use yii\base\JsonException;
-use yii\base\RuntimeException;
+use yii\base\InvalidConfigException;
 use yii\helpers\ArrayHelper;
-use yii\helpers\Html;
-
-#use function array_column;
-#use function array_key_exists;
-#use function array_merge;
-#use function array_search;
-#use function implode;
-#use function is_array;
-#use function is_numeric;
-#use function is_object;
-#use function is_string;
 
 /**
- * Accordion renders an accordion bootstrap JavaScript component.
+ * Accordion renders an accordion bootstrap javascript component.
  *
  * For example:
  *
  * ```php
- * echo Accordion::widget()
- *     ->items([
+ * echo Accordion::widget([
+ *     'items' => [
+ *         // equivalent to the above
  *         [
- *             'label' => 'Accordion Item #1',
+ *             'label' => 'Collapsible Group Item #1',
+ *             'content' => 'Anim pariatur cliche...',
+ *             // open its content by default
+ *             'contentOptions' => ['class' => 'in']
+ *         ],
+ *         // another group item
+ *         [
+ *             'label' => 'Collapsible Group Item #1',
+ *             'content' => 'Anim pariatur cliche...',
+ *             'contentOptions' => [...],
+ *             'options' => [...],
+ *             'expand' => true,
+ *         ],
+ *         // if you want to swap out .card-block with .list-group, you may use the following
+ *         [
+ *             'label' => 'Collapsible Group Item #1',
  *             'content' => [
- *                 'This is the first items accordion body. It is shown by default, until the collapse plugin ' .
- *                 'the appropriate classes that we use to style each element. These classes control the ' .
- *                 'overall appearance, as well as the showing and hiding via CSS transitions. You can  ' .
- *                 'modify any of this with custom CSS or overriding our default variables. Its also worth ' .
- *                 'noting that just about any HTML can go within the .accordion-body, though the transition ' .
- *                 'does limit overflow.',
+ *                 'Anim pariatur cliche...',
+ *                 'Anim pariatur cliche...'
  *             ],
+ *             'contentOptions' => [...],
+ *             'options' => [...],
+ *             'footer' => 'Footer' // the footer label in list-group
  *         ],
- *         [
- *             'label' => 'Accordion Item #2',
- *             'content' => '<strong>This is the second items accordion body.</strong> It is hidden by default, ' .
- *                 'until the collapse plugin adds the appropriate classes that we use to style each element. ' .
- *                 'These classes control the overall appearance, as well as the showing and hiding via CSS ' .
- *                 'transitions. You can modify any of this with custom CSS or overriding our default ' .
- *                 'variables. Its also worth noting that just about any HTML can go within the ' .
- *                 '<code>.accordion-body</code>, though the transition does limit overflow.',
- *             'contentOptions' => [
- *                 'class' => 'testContentOptions',
- *             ],
- *             'options' => [
- *                 'class' => 'testClass',
- *                 'id' => 'testId',
- *             ],
- *         ],
- *         [
- *             'label' => '<b>Accordion Item #3</b>',
- *             'content' => [
- *                 '<b>test content1</b>',
- *                 '<strong>This is the third items accordion body.</strong> It is hidden by default, until the ' .
- *                 'collapse plugin adds the appropriate classes that we use to style each element. These ' .
- *                 'classes control the overall appearance, as well as the showing and hiding via CSS ' .
- *                 'transitions. You can modify any of this with custom CSS or overriding our default ' .
- *                 'variables. Its also worth noting that just about any HTML can go within the ' .
- *                 '<code>.accordion-body</code>, though the transition does limit overflow.',
- *             ],
- *             'contentOptions' => [
- *                 'class' => 'testContentOptions2',
- *             ],
- *             'options' => [
- *                 'class' => 'testClass2',
- *                 'id' => 'testId2',
- *             ],
- *             'encode' => false,
- *         ],
- *     ]);
+ *     ]
+ * ]);
  * ```
  *
- * @link https://getbootstrap.com/docs/5.0/components/accordion/
+ * @see https://getbootstrap.com/docs/4.5/components/collapse/#accordion-example
+ * @author Antonio Ramirez <amigo.cobos@gmail.com>
+ * @author Simon Karlen <simi.albi@outlook.com>
  */
 class Accordion extends Widget
 {
-    private array $items = [];
-    private bool $encodeLabels = true;
-    private bool $encodeTags = false;
-    private bool $autoCloseItems = true;
-    private array $itemToggleOptions = [];
-    private array $options = [];
-    private bool $flush = false;
-
-    protected function run(): string
-    {
-        if (!isset($this->options['id'])) {
-            $this->options['id'] = "{$this->getId()}-accordion";
-        }
-
-        Html::addCssClass($this->options, ['widget' => 'accordion']);
-
-        if ($this->flush) {
-            Html::addCssClass($this->options, ['flush' => 'accordion-flush']);
-        }
-
-        return Html::div($this->renderItems(), $this->options)
-            ->encode($this->encodeTags)
-            ->render();
-    }
-
     /**
-     * Whether to close other items if an item is opened. Defaults to `true` which causes an accordion effect.
-     *
-     * Set this to `false` to allow keeping multiple items open at once.
-     *
-     * @return self
-     */
-    public function allowMultipleOpenedItems(): self
-    {
-        $new = clone $this;
-        $new->autoCloseItems = false;
-
-        return $new;
-    }
-
-    /**
-     * When tags Labels HTML should not be encoded.
-     *
-     * @return self
-     */
-    public function withoutEncodeLabels(): self
-    {
-        $new = clone $this;
-        $new->encodeLabels = false;
-
-        return $new;
-    }
-
-    /**
-     * List of groups in the collapse widget. Each array element represents a single group with the following structure:
+     * @var array list of groups in the collapse widget. Each array element represents a single
+     * group with the following structure:
      *
      * - label: string, required, the group header label.
-     * - encode: bool, optional, whether this label should be HTML-encoded. This param will override global
-     *   `$this->encodeLabels` param.
+     * - encode: bool, optional, whether this label should be HTML-encoded. This param will override
+     *   global `$this->encodeLabels` param.
      * - content: array|string|object, required, the content (HTML) of the group
      * - options: array, optional, the HTML attributes of the group
      * - contentOptions: optional, the HTML attributes of the group's content
      *
-     * You may also specify this property as key-value pairs, where the key refers to the `label` and the value refers
-     * to `content`. If value is a string it is interpreted as label. If it is an array, it is interpreted as explained
-     * above.
+     * Since version 2.0.7 you may also specify this property as key-value pairs, where the key refers to the
+     * `label` and the value refers to `content`. If value is a string it is interpreted as label. If it is
+     * an array, it is interpreted as explained above.
      *
      * For example:
      *
      * ```php
-     * echo Accordion::widget()
-     *     ->items(
-     *         [
-     *             [
-     *                 'Introduction' => 'This is the first collapsible menu',
-     *                 'Second panel' => [
-     *                     'content' => 'This is the second collapsible menu',
-     *                 ],
-     *             ],
-     *             [
-     *                 'label' => 'Third panel',
-     *                 'content' => 'This is the third collapsible menu',
-     *             ],
-     *         ],
-     *     );
+     * echo Accordion::widget([
+     *     'items' => [
+     *       'Introduction' => 'This is the first collapsable menu',
+     *       'Second panel' => [
+     *           'content' => 'This is the second collapsable menu',
+     *       ],
+     *       [
+     *           'label' => 'Third panel',
+     *           'content' => 'This is the third collapsable menu',
+     *       ],
+     *   ]
+     * ])
      * ```
-     *
-     * @param array $value
-     *
-     * @return self
      */
-    public function items(array $value): self
-    {
-        $new = clone $this;
-        $new->items = $value;
-
-        return $new;
-    }
-
+    public $items = [];
     /**
-     * The HTML options for the item toggle tag. Key 'tag' might be used here for the tag name specification.
-     *
+     * @var bool whether the labels for header items should be HTML-encoded.
+     */
+    public $encodeLabels = true;
+    /**
+     * @var bool whether to close other items if an item is opened. Defaults to `true` which causes an
+     * accordion effect. Set this to `false` to allow keeping multiple items open at once.
+     */
+    public $autoCloseItems = true;
+    /**
+     * @var array the HTML options for the item toggle tag. Key 'tag' might be used here for the tag name specification.
      * For example:
      *
      * ```php
@@ -195,111 +107,78 @@ class Accordion extends Widget
      * ]
      * ```
      *
-     * @param array $value
-     *
-     * @return self
      */
-    public function itemToggleOptions(array $value): self
-    {
-        $new = clone $this;
-        $new->itemToggleOptions = $value;
+    public $itemToggleOptions = [];
 
-        return $new;
+
+    /**
+     * {@inheritdoc}
+     * @throws InvalidConfigException
+     */
+    public function run()
+    {
+        $this->registerPlugin('collapse');
+        Html::addCssClass($this->options, ['widget' => 'accordion']);
+        return implode("\n", [
+                Html::beginTag('div', $this->options),
+                $this->renderItems(),
+                Html::endTag('div')
+            ]) . "\n";
     }
 
     /**
-     * The HTML attributes for the widget container tag. The following special options are recognized.
-     *
-     * {@see Html::renderTagAttributes()} for details on how attributes are being rendered.
-     *
-     * @param array $value
-     *
-     * @return self
-     */
-    public function options(array $value): self
-    {
-        $new = clone $this;
-        $new->options = $value;
-
-        return $new;
-    }
-
-    /**
-     * Remove the default background-color, some borders, and some rounded corners to render accordions
-     * edge-to-edge with their parent container.
-     *
-     * @return self
-     *
-     * @link https://getbootstrap.com/docs/5.0/components/accordion/#flush
-     */
-    public function flush(): self
-    {
-        $new = clone $this;
-        $new->flush = true;
-
-        return $new;
-    }
-
-    /**
-     * Renders collapsible items as specified on {@see items}.
-     *
-     * @throws JsonException|RuntimeException
-     *
+     * Renders collapsible items as specified on [[items]].
+     * @throws InvalidConfigException if label isn't specified
      * @return string the rendering result
      */
-    private function renderItems(): string
+    public function renderItems()
     {
         $items = [];
         $index = 0;
-        $expanded = array_search(true, array_column($this->items, 'expand'), true);
-
-        foreach ($this->items as $item) {
+        $expanded = array_search(true, ArrayHelper::getColumn(ArrayHelper::toArray($this->items), 'expand', true));
+        foreach ($this->items as $key => $item) {
             if (!is_array($item)) {
                 $item = ['content' => $item];
             }
-
+            // BC compatibility: expand first item if none is expanded
             if ($expanded === false && $index === 0) {
                 $item['expand'] = true;
             }
-
             if (!array_key_exists('label', $item)) {
-                throw new RuntimeException('The "label" option is required.');
+                if (is_int($key)) {
+                    throw new InvalidConfigException("The 'label' option is required.");
+                } else {
+                    $item['label'] = $key;
+                }
             }
-
             $header = ArrayHelper::remove($item, 'label');
             $options = ArrayHelper::getValue($item, 'options', []);
-
-            Html::addCssClass($options, ['panel' => 'accordion-item']);
-
-            $items[] = Html::div($this->renderItem($header, $item, $index++), $options)
-                ->encode($this->encodeTags)
-                ->render();
+            Html::addCssClass($options, ['panel' => 'card']);
+            $items[] = Html::tag('div', $this->renderItem($header, $item, $index++), $options);
         }
 
         return implode("\n", $items);
     }
 
     /**
-     * Renders a single collapsible item group.
-     *
-     * @param string $header a label of the item group {@see items}
-     * @param array $item a single item from {@see items}
+     * Renders a single collapsible item group
+     * @param string $header a label of the item group [[items]]
+     * @param array $item a single item from [[items]]
      * @param int $index the item index as each item group content must have an id
-     *
-     * @throws JsonException|RuntimeException
-     *
      * @return string the rendering result
+     * @throws InvalidConfigException
+     * @throws \Exception
      */
-    private function renderItem(string $header, array $item, int $index): string
+    public function renderItem($header, $item, $index)
     {
         if (array_key_exists('content', $item)) {
             $id = $this->options['id'] . '-collapse' . $index;
             $expand = ArrayHelper::remove($item, 'expand', false);
             $options = ArrayHelper::getValue($item, 'contentOptions', []);
             $options['id'] = $id;
+            Html::addCssClass($options, ['widget' => 'collapse']);
 
-            Html::addCssClass($options, ['widget' => 'accordion-body collapse']);
-
+            // check if accordion expanded, if true add show class
             if ($expand) {
                 Html::addCssClass($options, ['visibility' => 'show']);
             }
@@ -309,7 +188,6 @@ class Accordion extends Widget
             }
 
             $encodeLabel = $item['encode'] ?? $this->encodeLabels;
-
             if ($encodeLabel) {
                 $header = Html::encode($header);
             }
@@ -317,54 +195,56 @@ class Accordion extends Widget
             $itemToggleOptions = array_merge([
                 'tag' => 'button',
                 'type' => 'button',
-                'data-bs-toggle' => 'collapse',
-                'data-bs-target' => '#' . $options['id'],
+                'data-toggle' => 'collapse',
+                'data-target' => '#' . $options['id'],
                 'aria-expanded' => $expand ? 'true' : 'false',
                 'aria-controls' => $options['id'],
             ], $this->itemToggleOptions);
 
             $itemToggleTag = ArrayHelper::remove($itemToggleOptions, 'tag', 'button');
-
             if ($itemToggleTag === 'a') {
-                ArrayHelper::remove($itemToggleOptions, 'data-bs-target');
-                $header = Html::a($header, '#' . $id, $itemToggleOptions)->encode($this->encodeTags) . "\n";
+                ArrayHelper::remove($itemToggleOptions, 'data-target');
+                $headerToggle = Html::a($header, '#' . $id, $itemToggleOptions) . "\n";
             } else {
-                Html::addCssClass($itemToggleOptions, ['widget' => 'accordion-button']);
-                if (!$expand) {
-                    Html::addCssClass($itemToggleOptions, ['expand' => 'collapsed']);
-                }
-                $header = Html::button($header, $itemToggleOptions)->encode($this->encodeTags)->render();
+                Html::addCssClass($itemToggleOptions, ['feature' => 'btn-link']);
+                $headerToggle = Button::widget([
+                        'label' => $header,
+                        'encodeLabel' => false,
+                        'options' => $itemToggleOptions
+                    ]) . "\n";
             }
+
+            $header = Html::tag('h5', $headerToggle, ['class' => 'mb-0']);
 
             if (is_string($item['content']) || is_numeric($item['content']) || is_object($item['content'])) {
-                $content = $item['content'];
+                $content = Html::tag('div', $item['content'], ['class' => 'card-body']) . "\n";
             } elseif (is_array($item['content'])) {
-                $items = [];
-                foreach ($item['content'] as $content) {
-                    $items[] = Html::div($content)
-                        ->attributes(['class' => 'accordion-body'])
-                        ->encode($this->encodeTags)
-                        ->render();
-                }
-
-                $content = implode("\n", $items);
+                $content = Html::ul($item['content'], [
+                        'class' => 'list-group',
+                        'itemOptions' => [
+                            'class' => 'list-group-item'
+                        ],
+                        'encode' => false,
+                    ]) . "\n";
             } else {
-                throw new RuntimeException('The "content" option should be a string, array or object.');
+                throw new InvalidConfigException('The "content" option should be a string, array or object.');
             }
         } else {
-            throw new RuntimeException('The "content" option is required.');
+            throw new InvalidConfigException('The "content" option is required.');
         }
-
         $group = [];
 
         if ($this->autoCloseItems) {
-            $options['data-bs-parent'] = '#' . $this->options['id'];
+            $options['data-parent'] = '#' . $this->options['id'];
         }
 
-        $groupOptions = ['class' => 'accordion-header', 'id' => $options['id'] . '-heading'];
-
-        $group[] = Html::tag('h2', $header, $groupOptions)->encode($this->encodeTags);
-        $group[] = Html::div($content, $options)->encode($this->encodeTags);
+        $group[] = Html::tag('div', $header, ['class' => 'card-header', 'id' => $options['id'] . '-heading']);
+        $group[] = Html::beginTag('div', $options);
+        $group[] = $content;
+        if (isset($item['footer'])) {
+            $group[] = Html::tag('div', $item['footer'], ['class' => 'card-footer']);
+        }
+        $group[] = Html::endTag('div');
 
         return implode("\n", $group);
     }

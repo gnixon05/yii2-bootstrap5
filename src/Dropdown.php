@@ -7,16 +7,8 @@
 
 namespace gnixon\bootstrap5;
 
-use yii\base\JsonException;
-use yii\base\RuntimeException;
-use yii\helpers\ArrayHelper;
 use yii\base\InvalidConfigException;
-use yii\helpers\Html;
-
-#use function array_key_exists;
-#use function array_merge;
-#use function array_merge_recursive;
-#use function is_string;
+use yii\helpers\ArrayHelper;
 
 /**
  * Dropdown renders a Bootstrap dropdown menu component.
@@ -25,122 +17,83 @@ use yii\helpers\Html;
  *
  * ```php
  * <div class="dropdown">
+ *     <a href="#" data-toggle="dropdown" class="dropdown-toggle">Label <b class="caret"></b></a>
  *     <?php
- *         echo Dropdown::widget()
- *             ->items([
+ *         echo Dropdown::widget([
+ *             'items' => [
  *                 ['label' => 'DropdownA', 'url' => '/'],
  *                 ['label' => 'DropdownB', 'url' => '#'],
- *             ]);
+ *             ],
+ *         ]);
  *     ?>
  * </div>
  * ```
+ * @see https://getbootstrap.com/docs/4.5/components/dropdowns/
+ * @author Antonio Ramirez <amigo.cobos@gmail.com>
+ * @author Simon Karlen <simi.albi@outlook.com>
  */
 class Dropdown extends Widget
 {
-    private array $items = [];
-    private bool $encodeLabels = true;
-    private bool $encodeTags = false;
-    private array $submenuOptions = [];
-    private array $options = [];
+    /**
+     * @var array list of menu items in the dropdown. Each array element can be either an HTML string,
+     * or an array representing a single menu with the following structure:
+     *
+     * - label: string, required, the label of the item link.
+     * - encode: bool, optional, whether to HTML-encode item label.
+     * - url: string|array, optional, the URL of the item link. This will be processed by [[\yii\helpers\Url::to()]].
+     *   If not set, the item will be treated as a menu header when the item has no sub-menu.
+     * - visible: bool, optional, whether this menu item is visible. Defaults to true.
+     * - disabled: bool, optional, whether this menu item is disabled. Defaults to false.
+     * - linkOptions: array, optional, the HTML attributes of the item link.
+     * - options: array, optional, the HTML attributes of the item.
+     * - active: bool, optional, whether the item should be on active state or not.
+     * - items: array, optional, the submenu items. The structure is the same as this property.
+     *   Note that Bootstrap doesn't support dropdown submenu. You have to add your own CSS styles to support it.
+     * - submenuOptions: array, optional, the HTML attributes for sub-menu container tag. If specified it will be
+     *   merged with [[submenuOptions]].
+     *
+     * To insert divider use `-`.
+     */
+    public $items = [];
+    /**
+     * @var bool whether the labels for header items should be HTML-encoded.
+     */
+    public $encodeLabels = true;
+    /**
+     * @var array|null the HTML attributes for sub-menu container tags.
+     */
+    public $submenuOptions = [];
 
-    protected function run(): string
+
+    /**
+     * {@inheritdoc}
+     */
+    public function init()
     {
-        if (!isset($this->options['id'])) {
-            $this->options['id'] = "{$this->getId()}-dropdown";
-        }
-
-        /** @psalm-suppress InvalidArgument */
+        parent::init();
         Html::addCssClass($this->options, ['widget' => 'dropdown-menu']);
+    }
 
+    /**
+     * Renders the widget.
+     * @throws InvalidConfigException
+     */
+    public function run()
+    {
+        BootstrapPluginAsset::register($this->getView());
+        $this->registerClientEvents();
         return $this->renderItems($this->items, $this->options);
     }
 
     /**
-     * List of menu items in the dropdown. Each array element can be either an HTML string, or an array representing a
-     * single menu with the following structure:
-     *
-     * - label: string, required, the label of the item link.
-     * - encode: bool, optional, whether to HTML-encode item label.
-     * - url: string|array, optional, the URL of the item link. This will be processed by {@see currentPath}.
-     *   If not set, the item will be treated as a menu header when the item has no sub-menu.
-     * - visible: bool, optional, whether this menu item is visible. Defaults to true.
-     * - linkOptions: array, optional, the HTML attributes of the item link.
-     * - options: array, optional, the HTML attributes of the item.
-     * - items: array, optional, the submenu items. The structure is the same as this property.
-     *   Note that Bootstrap doesn't support dropdown submenu. You have to add your own CSS styles to support it.
-     * - submenuOptions: array, optional, the HTML attributes for sub-menu container tag. If specified it will be
-     *   merged with {@see submenuOptions}.
-     *
-     * To insert divider use `-`.
-     *
-     * @param array $value
-     *
-     * @return self
-     */
-    public function items(array $value): self
-    {
-        $new = clone $this;
-        $new->items = $value;
-
-        return $new;
-    }
-
-    /**
-     * When tags Labels HTML should not be encoded.
-     *
-     * @return self
-     */
-    public function withoutEncodeLabels(): self
-    {
-        $new = clone $this;
-        $new->encodeLabels = false;
-
-        return $new;
-    }
-
-    /**
-     * The HTML attributes for sub-menu container tags.
-     *
-     * @param array $value
-     *
-     * @return self
-     */
-    public function submenuOptions(array $value): self
-    {
-        $new = clone $this;
-        $new->submenuOptions = $value;
-
-        return $new;
-    }
-
-    /**
-     * @param array $value the HTML attributes for the widget container tag. The following special options are
-     * recognized.
-     *
-     * @return self
-     *
-     * {@see Html::renderTagAttributes()} for details on how attributes are being rendered.
-     */
-    public function options(array $value): self
-    {
-        $new = clone $this;
-        $new->options = $value;
-
-        return $new;
-    }
-
-    /**
      * Renders menu items.
-     *
      * @param array $items the menu items to be rendered
      * @param array $options the container HTML attributes
-     *
-     * @throws InvalidConfigException|JsonException|RuntimeException if the label option is not specified in one of the
-     * items.
-     *
      * @return string the rendering result.
+     * @throws InvalidConfigException if the label option is not specified in one of the items.
+     * @throws \Exception
      */
-    private function renderItems(array $items, array $options = []): string
+    protected function renderItems($items, $options = [])
     {
         $lines = [];
 
@@ -202,30 +155,30 @@ class Dropdown extends Widget
 
                 $itemOptions = array_merge_recursive(['class' => ['dropdown'], 'aria-expanded' => 'false'], $itemOptions);
 
-                $dropdown = self::widget()
-                    ->items($item['items'])
-                    ->options($submenuOptions)
-                    ->submenuOptions($submenuOptions);
-
-                if ($this->encodeLabels === false) {
-                    $dropdown = $dropdown->withoutEncodeLabels();
-                }
-
                 ArrayHelper::setValue($linkOptions, 'data-bs-toggle', 'dropdown');
                 ArrayHelper::setValue($linkOptions, 'aria-haspopup', 'true');
                 ArrayHelper::setValue($linkOptions, 'aria-expanded', 'false');
                 ArrayHelper::setValue($linkOptions, 'role', 'button');
 
-                $lines[] = Html::a($label, $url, $linkOptions)->encode($this->encodeTags) .
-                    Html::tag('ul', $dropdown->render(), $itemOptions)->encode($this->encodeTags);
+                $lines[] = Html::beginTag('div', array_merge_recursive(['class' => ['dropdown'], 'aria-expanded' => 'false'], $itemOptions));
+                $lines[] = Html::a($label, $url, array_merge([
+                    'data-toggle' => 'dropdown',
+                    'aria-haspopup' => 'true',
+                    'aria-expanded' => 'false',
+                    'role' => 'button'
+                ], $linkOptions));
+                $lines[] = static::widget([
+                    'items' => $item['items'],
+                    'options' => $submenuOptions,
+                    'submenuOptions' => $submenuOptions,
+                    'encodeLabels' => $this->encodeLabels
+                ]);
+                $lines[] = Html::endTag('div');
             }
         }
 
         $options = array_merge(['aria-expanded' => 'false'], $options);
 
-        return Html::ul()
-            ->strings($lines, [], $this->encodeTags)
-            ->attributes($options)
-            ->render();
+        return Html::tag('div', implode("\n", $lines), $options);
     }
 }

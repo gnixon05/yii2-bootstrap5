@@ -7,12 +7,26 @@
 
 namespace gnixon\bootstrap5;
 
+/**
+ * \gnixon\bootstrap5\Widget is the base class for all bootstrap widgets.
+ *
+ * @author Antonio Ramirez <amigo.cobos@gmail.com>
+ * @author Qiang Xue <qiang.xue@gmail.com>
+ */
 class Widget extends \yii\base\Widget
 {
-    private ?string $id = null;
-    private bool $autoGenerate = true;
-    private string $autoIdPrefix = 'w';
-    private static int $counter = 0;
+    use BootstrapWidgetTrait;
+
+    private $id = null;
+    private $autoGenerate = true;
+    private $autoIdPrefix = 'w';
+    private $counter = 0;
+
+    /**
+     * @var array the HTML attributes for the widget container tag.
+     * @see \yii\helpers\Html::renderTagAttributes() for details on how attributes are being rendered.
+     */
+    public $options = [];
 
     /**
      * Returns the Id of the widget.
@@ -26,47 +40,5 @@ class Widget extends \yii\base\Widget
         }
 
         return $this->id;
-    }
-
-    /**
-     * Set the Id of the widget.
-     *
-     * @param string $value
-     *
-     * @return self
-     */
-    public function id(string $value): self
-    {
-        $new = clone $this;
-        $new->id = $value;
-
-        return $new;
-    }
-
-    /**
-     * Counter used to generate {@see id} for widgets.
-     *
-     * @param int $value
-     */
-    public static function counter(int $value): void
-    {
-        self::$counter = $value;
-    }
-
-    /**
-     * The prefix to the automatically generated widget IDs.
-     *
-     * @param string $value
-     *
-     * @return self
-     *
-     * {@see getId()}
-     */
-    public function autoIdPrefix(string $value): self
-    {
-        $new = clone $this;
-        $new->autoIdPrefix = $value;
-
-        return $new;
     }
 }

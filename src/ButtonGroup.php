@@ -8,11 +8,6 @@
 namespace gnixon\bootstrap5;
 
 use yii\helpers\ArrayHelper;
-use yii\base\InvalidConfigException;
-use yii\helpers\Html;
-
-#use function implode;
-#use function is_array;
 
 /**
  * ButtonGroup renders a button group bootstrap component.
@@ -21,132 +16,93 @@ use yii\helpers\Html;
  *
  * ```php
  * // a button group with items configuration
- * echo ButtonGroup::widget()
- *     ->buttons([
+ * echo ButtonGroup::widget([
+ *     'buttons' => [
  *         ['label' => 'A'],
  *         ['label' => 'B'],
  *         ['label' => 'C', 'visible' => false],
- *     ]);
+ *     ]
+ * ]);
  *
  * // button group with an item as a string
- * echo ButtonGroup::widget()
- *     ->buttons([
- *         Button::widget()->label('A'),
+ * echo ButtonGroup::widget([
+ *     'buttons' => [
+ *         Button::widget(['label' => 'A']),
  *         ['label' => 'B'],
- *     ]);
+ *     ]
+ * ]);
  * ```
  *
  * Pressing on the button should be handled via JavaScript. See the following for details:
+ *
+ * @see https://getbootstrap.com/docs/5.0/components/buttons/
+ * @see https://getbootstrap.com/docs/5.0/components/button-group/
+ *
+ * @author Antonio Ramirez <amigo.cobos@gmail.com>
+ * @author Simon Karlen <simi.albi@outlook.com>
  */
 class ButtonGroup extends Widget
 {
-    private array $buttons = [];
-    private bool $encodeLabels = true;
-    private bool $encodeTags = false;
-    private array $options = [];
-
-    protected function run(): string
-    {
-        if (!isset($this->options['id'])) {
-            $this->options['id'] = "{$this->getId()}-button-group";
-        }
-
-        /** @psalm-suppress InvalidArgument */
-        Html::addCssClass($this->options, ['widget' => 'btn-group']);
-
-        if (!isset($this->options['role'])) {
-            $this->options['role'] = 'group';
-        }
-
-        return Html::div($this->renderButtons(), $this->options)
-            ->encode($this->encodeTags)
-            ->render();
-    }
-
     /**
-     * List of buttons. Each array element represents a single button which can be specified as a string or an array of
-     * the following structure:
+     * @var array list of buttons. Each array element represents a single button
+     * which can be specified as a string or an array of the following structure:
      *
      * - label: string, required, the button label.
      * - options: array, optional, the HTML attributes of the button.
      * - visible: bool, optional, whether this button is visible. Defaults to true.
-     *
-     * @param array $value
-     *
-     * @return self
      */
-    public function buttons(array $value): self
-    {
-        $new = clone $this;
-        $new->buttons = $value;
+    public $buttons = [];
+    /**
+     * @var bool whether to HTML-encode the button labels.
+     */
+    public $encodeLabels = true;
 
-        return $new;
+
+    /**
+     * {@inheritdoc}
+     */
+    public function init()
+    {
+        parent::init();
+        Html::addCssClass($this->options, ['widget' => 'btn-group']);
+        if (!isset($this->options['role'])) {
+            $this->options['role'] = 'group';
+        }
     }
 
     /**
-     * When tags Labels HTML should not be encoded.
-     *
-     * @return self
+     * {@inheritdoc}
+     * @throws \Exception
      */
-    public function withoutEncodeLabels(): self
+    public function run()
     {
-        $new = clone $this;
-        $new->encodeLabels = false;
-
-        return $new;
+        BootstrapAsset::register($this->getView());
+        return Html::tag('div', $this->renderButtons(), $this->options);
     }
 
     /**
-     * The HTML attributes for the widget container tag. The following special options are recognized.
-     *
-     * {@see Html::renderTagAttributes()} for details on how attributes are being rendered.
-     *
-     * @param array $value
-     *
-     * @return self
-     */
-    public function options(array $value): self
-    {
-        $new = clone $this;
-        $new->options = $value;
-
-        return $new;
-    }
-
-    /**
-     * Generates the buttons that compound the group as specified on {@see buttons}.
-     *
-     * @throws InvalidConfigException
-     *
+     * Generates the buttons that compound the group as specified on [[buttons]].
      * @return string the rendering result.
+     * @throws \Exception
      */
-    private function renderButtons(): string
+    protected function renderButtons()
     {
         $buttons = [];
-
         foreach ($this->buttons as $button) {
             if (is_array($button)) {
                 $visible = ArrayHelper::remove($button, 'visible', true);
-
                 if ($visible === false) {
                     continue;
                 }
 
+                $button['view'] = $this->getView();
                 if (!isset($button['encodeLabel'])) {
                     $button['encodeLabel'] = $this->encodeLabels;
                 }
-
-                if (!isset($button['options']['type'])) {
-                    ArrayHelper::setValueByPath($button, 'options.type', 'button');
+                if (!isset($button['options'], $button['options']['type'])) {
+                    ArrayHelper::setValue($button, 'options.type', 'button');
                 }
-
-                $buttonWidget = Button::widget()->label($button['label'])->options($button['options']);
-
-                if ($button['encodeLabel'] === false) {
-                    $buttonWidget = $buttonWidget->withoutEncodeLabels();
-                }
-
-                $buttons[] = $buttonWidget->render();
+                $buttons[] = Button::widget($button);
             } else {
                 $buttons[] = $button;
             }
