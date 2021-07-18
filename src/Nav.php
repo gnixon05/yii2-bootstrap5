@@ -127,7 +127,7 @@ class Nav extends Widget
      */
     public function run()
     {
-        BootstrapAsset::register($this->getView());
+        Bootstrap5Asset::register($this->getView());
         return $this->renderItems();
     }
 
@@ -245,7 +245,7 @@ class Nav extends Widget
                 $items[$i]['items'] = $this->isChildActive($childItems, $activeParent);
 
                 if ($activeParent) {
-                    $items[$i]['options'] ??= [];
+                    $items[$i]['options'] = $items[$i]['options'] ?? [];
                     Html::addCssClass($items[$i]['options'], ['activate' => 'active']);
                     $active = true;
                 }

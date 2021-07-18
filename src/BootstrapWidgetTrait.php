@@ -69,7 +69,7 @@ trait BootstrapWidgetTrait
     {
         $view = $this->getView();
 
-        BootstrapPluginAsset::register($view);
+        Bootstrap5PluginAsset::register($view);
 
         $id = $this->options['id'];
 

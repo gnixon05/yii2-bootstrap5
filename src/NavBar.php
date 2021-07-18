@@ -184,7 +184,7 @@ class NavBar extends Widget
 
         echo $htmlRun;
 
-        BootstrapPluginAsset::register($this->getView());
+        Bootstrap5PluginAsset::register($this->getView());
     }
 
     /**
