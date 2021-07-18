@@ -19,8 +19,8 @@ class Widget extends \yii\base\Widget
 
     private $id = null;
     private $autoGenerate = true;
-    private $autoIdPrefix = 'w';
-    private $counter = 0;
+    //private $autoIdPrefix = 'w';
+    public static $counter = 0;
 
     /**
      * @var array the HTML attributes for the widget container tag.
@@ -33,10 +33,10 @@ class Widget extends \yii\base\Widget
      *
      * @return string|null Id of the widget.
      */
-    protected function getId(): ?string
+    public function getId($autoGenerate = true): ?string
     {
         if ($this->autoGenerate && $this->id === null) {
-            $this->id = $this->autoIdPrefix . static::$counter++;
+            $this->id = static::$autoIdPrefix . static::$counter++;
         }
 
         return $this->id;
