@@ -117,7 +117,7 @@ class Accordion extends Widget
      */
     public function run()
     {
-        $this->registerPlugin('collapse');
+        //$this->registerPlugin('collapse');
         Html::addCssClass($this->options, ['widget' => 'accordion']);
         return implode("\n", [
                 Html::beginTag('div', $this->options),
@@ -141,9 +141,9 @@ class Accordion extends Widget
                 $item = ['content' => $item];
             }
             // BC compatibility: expand first item if none is expanded
-            if ($expanded === false && $index === 0) {
-                $item['expand'] = true;
-            }
+            //if ($expanded === false && $index === 0) {
+                //$item['expand'] = true;
+            //}
             if (!array_key_exists('label', $item)) {
                 if (is_int($key)) {
                     throw new InvalidConfigException("The 'label' option is required.");
@@ -153,7 +153,7 @@ class Accordion extends Widget
             }
             $header = ArrayHelper::remove($item, 'label');
             $options = ArrayHelper::getValue($item, 'options', []);
-            Html::addCssClass($options, ['panel' => 'card']);
+            Html::addCssClass($options, ['panel' => 'accordion-item']);
             $items[] = Html::tag('div', $this->renderItem($header, $item, $index++), $options);
         }
 
@@ -172,11 +172,11 @@ class Accordion extends Widget
     public function renderItem($header, $item, $index)
     {
         if (array_key_exists('content', $item)) {
-            $id = $this->options['id'] . '-collapse' . $index;
+            $id = $this->options['id'] . '-collapse_' . $index;
             $expand = ArrayHelper::remove($item, 'expand', false);
             $options = ArrayHelper::getValue($item, 'contentOptions', []);
             $options['id'] = $id;
-            Html::addCssClass($options, ['widget' => 'collapse']);
+            Html::addCssClass($options, ['widget' => 'collapse accordion-collapse']);
 
             // check if accordion expanded, if true add show class
             if ($expand) {
@@ -195,18 +195,19 @@ class Accordion extends Widget
             $itemToggleOptions = array_merge([
                 'tag' => 'button',
                 'type' => 'button',
-                'data-toggle' => 'collapse',
-                'data-target' => '#' . $options['id'],
+                'data-bs-toggle' => 'collapse',
+                'data-bs-target' => '#' . $options['id'],
                 'aria-expanded' => $expand ? 'true' : 'false',
                 'aria-controls' => $options['id'],
             ], $this->itemToggleOptions);
 
             $itemToggleTag = ArrayHelper::remove($itemToggleOptions, 'tag', 'button');
             if ($itemToggleTag === 'a') {
-                ArrayHelper::remove($itemToggleOptions, 'data-target');
+                ArrayHelper::remove($itemToggleOptions, 'data-bs-target');
                 $headerToggle = Html::a($header, '#' . $id, $itemToggleOptions) . "\n";
             } else {
-                Html::addCssClass($itemToggleOptions, ['feature' => 'btn-link']);
+                $classList = $expand?'accordion-button':'accordion-button collapsed';
+                Html::addCssClass($itemToggleOptions, ['feature' => $classList]);
                 $headerToggle = Button::widget([
                         'label' => $header,
                         'encodeLabel' => false,
@@ -214,10 +215,11 @@ class Accordion extends Widget
                     ]) . "\n";
             }
 
-            $header = Html::tag('h5', $headerToggle, ['class' => 'mb-0']);
+            //$header = Html::tag('h5', $headerToggle, ['class' => 'mb-0']);
+            $header = $headerToggle;
 
             if (is_string($item['content']) || is_numeric($item['content']) || is_object($item['content'])) {
-                $content = Html::tag('div', $item['content'], ['class' => 'card-body']) . "\n";
+                $content = Html::tag('div', $item['content'], ['class' => 'accordion-body']) . "\n";
             } elseif (is_array($item['content'])) {
                 $content = Html::ul($item['content'], [
                         'class' => 'list-group',
@@ -235,14 +237,14 @@ class Accordion extends Widget
         $group = [];
 
         if ($this->autoCloseItems) {
-            $options['data-parent'] = '#' . $this->options['id'];
+            $options['data-bs-parent'] = '#' . $this->options['id'];
         }
 
-        $group[] = Html::tag('div', $header, ['class' => 'card-header', 'id' => $options['id'] . '-heading']);
+        $group[] = Html::tag('h2', $header, ['class' => 'accordion-header', 'id' => $options['id'] . '-heading']);
         $group[] = Html::beginTag('div', $options);
         $group[] = $content;
         if (isset($item['footer'])) {
-            $group[] = Html::tag('div', $item['footer'], ['class' => 'card-footer']);
+            $group[] = Html::tag('div', $item['footer'], ['class' => 'accordion-footer']);
         }
         $group[] = Html::endTag('div');
 
