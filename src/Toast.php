@@ -137,7 +137,7 @@ class Toast extends Widget
     {
         $button = $this->renderCloseButton();
         $tag = ArrayHelper::remove($this->titleOptions, 'tag', 'strong');
-        Html::addCssClass($this->titleOptions, ['widget' => 'mr-auto']);
+        Html::addCssClass($this->titleOptions, ['widget' => 'me-auto']);
         $title = Html::tag($tag, $this->title === null ? '' : $this->title, $this->titleOptions);
 
         if ($this->dateTime !== false) {
