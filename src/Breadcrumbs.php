@@ -38,6 +38,10 @@ class Breadcrumbs extends Widget
      */
     public $encodeLabels = true;
     /**
+     * @var bool|string allows user to specify specific divider to use.
+     */
+    public $divider = false;
+    /**
      * @var array the first hyperlink in the breadcrumbs (called home link).
      * Please refer to [[links]] on the format of the link.
      * If this property is not set, it will default to a link pointing to [[\yii\web\Application::homeUrl]]
@@ -96,6 +100,14 @@ class Breadcrumbs extends Widget
     {
         if (!isset($this->options['id'])) {
             $this->options['id'] = "{$this->getId()}-breadcrumb";
+        }
+
+        if ($this->divider !== false) {
+            if (!isset($this->options['style'])) {
+                $this->options['style'] = "--bs-breadcrumb-divider: '{$this->divider}';";
+            } else {
+                $this->options['style'] = "--bs-breadcrumb-divider: '{$this->divider}';" . $this->options['style'];
+            }
         }
 
         /** @psalm-suppress InvalidArgument */

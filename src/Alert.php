@@ -46,6 +46,10 @@ use yii\helpers\ArrayHelper;
 class Alert extends Widget
 {
     /**
+     * @var string the header content in the alert component.
+     */
+    public $header;
+    /**
      * @var string the body content in the alert component. Note that anything between
      * the [[begin()]] and [[end()]] calls of the Alert widget will also be treated
      * as the body content, and will be rendered before this.
@@ -97,7 +101,16 @@ class Alert extends Widget
      */
     protected function renderBodyEnd()
     {
-        return $this->body . "\n" . $this->renderCloseButton() . "\n";
+        return $this->renderHeader() . "\n" . $this->body . "\n" . $this->renderCloseButton() . "\n";
+    }
+
+    /**
+     * Renders the alert header.
+     * @return string the rendering result
+     */
+    protected function renderHeader()
+    {
+        return $this->header?Html::tag('h4', $this->header, ['class' => 'alert-heading']):'';
     }
 
     /**
@@ -108,14 +121,11 @@ class Alert extends Widget
     {
         if (($closeButton = $this->closeButton) !== false) {
             $tag = ArrayHelper::remove($closeButton, 'tag', 'button');
-            $label = ArrayHelper::remove($closeButton, 'label', Html::tag('span', '&times;', [
-                'aria-hidden' => 'true'
-            ]));
             if ($tag === 'button' && !isset($closeButton['type'])) {
                 $closeButton['type'] = 'button';
             }
 
-            return Html::tag($tag, $label, $closeButton);
+            return Html::tag($tag, '', $closeButton);
         } else {
             return null;
         }
@@ -131,8 +141,9 @@ class Alert extends Widget
 
         if ($this->closeButton !== false) {
             $this->closeButton = array_merge([
-                'data-dismiss' => 'alert',
-                'class' => ['widget' => 'close'],
+                'data-bs-dismiss' => 'alert',
+                'aria-label' => 'close',
+                'class' => ['widget' => 'btn-close'],
             ], $this->closeButton);
 
             Html::addCssClass($this->options, ['toggle' => 'alert-dismissible']);
