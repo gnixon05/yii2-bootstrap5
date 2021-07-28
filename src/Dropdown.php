@@ -63,6 +63,10 @@ class Dropdown extends Widget
      * @var array|null the HTML attributes for sub-menu container tags.
      */
     public $submenuOptions = [];
+    /**
+     * @var mixed
+     */
+    private $encodeTags;
 
 
     /**
@@ -80,7 +84,7 @@ class Dropdown extends Widget
      */
     public function run()
     {
-        BootstrapPluginAsset::register($this->getView());
+        Bootstrap5PluginAsset::register($this->getView());
         $this->registerClientEvents();
         return $this->renderItems($this->items, $this->options);
     }
@@ -133,13 +137,15 @@ class Dropdown extends Widget
             /** @psalm-suppress ConflictingReferenceConstraint */
             if (empty($item['items'])) {
                 if ($label === '-') {
-                    $content = Html::div('', ['class' => 'dropdown-divider']);
+                    #$content = Html::div('', ['class' => 'dropdown-divider']);
+                    $content = Html::tag('div', '', ['class' => 'dropdown-divider']);
                 } elseif ($enclose === false) {
                     $content = $label;
                 } elseif ($url === null) {
                     $content = Html::tag('h6', $label, ['class' => 'dropdown-header']);
                 } else {
-                    $content = Html::a($label, $url, $linkOptions)->encode($this->encodeTags);
+                    #$content = Html::a($label, $url, $linkOptions)->encode($this->encodeTags);
+                    $content = Html::a($label, $url, $linkOptions);
                 }
 
                 $lines[] = $content;
@@ -162,7 +168,7 @@ class Dropdown extends Widget
 
                 $lines[] = Html::beginTag('div', array_merge_recursive(['class' => ['dropdown'], 'aria-expanded' => 'false'], $itemOptions));
                 $lines[] = Html::a($label, $url, array_merge([
-                    'data-toggle' => 'dropdown',
+                    'data-bs-toggle' => 'dropdown',
                     'aria-haspopup' => 'true',
                     'aria-expanded' => 'false',
                     'role' => 'button'
