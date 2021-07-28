@@ -92,7 +92,7 @@ class ButtonDropdown extends Widget
     /**
      * @var string name of a class to use for rendering dropdowns withing this widget. Defaults to [[Dropdown]].
      */
-    public $dropdownClass = 'gnixon\bootstrap5\Dropdown';
+    public $dropdownClass = 'app\widgets\bootstrap5\Dropdown';
     /**
      * @var bool whether to render the container using the [[options]] as HTML attributes. If set to `false`,
      * the container element enclosing the button and dropdown will NOT be rendered.
@@ -114,7 +114,7 @@ class ButtonDropdown extends Widget
 
     /**
      * {@inheritdoc}
-     * @throws \Exception
+     * @throws Exception
      */
     public function run()
     {
@@ -137,7 +137,7 @@ class ButtonDropdown extends Widget
     /**
      * Generates the button dropdown.
      * @return string the rendering result.
-     * @throws \Exception
+     * @throws Exception
      */
     protected function renderButton()
     {
@@ -149,7 +149,7 @@ class ButtonDropdown extends Widget
 
         if ($this->split) {
             $buttonOptions = $this->buttonOptions;
-            $this->buttonOptions['data-toggle'] = 'dropdown';
+            $this->buttonOptions['data-bs-toggle'] = 'dropdown';
             $this->buttonOptions['aria-haspopup'] = 'true';
             $this->buttonOptions['aria-expanded'] = 'false';
             Html::addCssClass($this->buttonOptions, ['toggle' => 'dropdown-toggle dropdown-toggle-split']);
@@ -163,7 +163,7 @@ class ButtonDropdown extends Widget
         } else {
             $buttonOptions = $this->buttonOptions;
             Html::addCssClass($buttonOptions, ['toggle' => 'dropdown-toggle']);
-            $buttonOptions['data-toggle'] = 'dropdown';
+            $buttonOptions['data-bs-toggle'] = 'dropdown';
             $buttonOptions['aria-haspopup'] = 'true';
             $buttonOptions['aria-expanded'] = 'false';
             $splitButton = '';
@@ -192,7 +192,7 @@ class ButtonDropdown extends Widget
     /**
      * Generates the dropdown menu.
      * @return string the rendering result.
-     * @throws \Exception
+     * @throws Exception
      */
     protected function renderDropdown()
     {

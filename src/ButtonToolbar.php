@@ -24,7 +24,9 @@ namespace gnixon\bootstrap5;
  *                 ['label' => '3', 'options' => ['class' => ['btn-secondary']]],
  *                 ['label' => '4', 'options' => ['class' => ['btn-secondary']]]
  *             ],
- *              'class' => ['mr-2']
+ *              'options' => [
+ *                  'class' => ['me-2']
+ *              ]
  *         ],
  *         [
  *             'buttons' => [
@@ -32,7 +34,9 @@ namespace gnixon\bootstrap5;
  *                 ['label' => '6', 'options' => ['class' => ['btn-secondary']]],
  *                 ['label' => '7', 'options' => ['class' => ['btn-secondary']]]
  *             ],
- *             'class' => ['mr-2']
+ *             'options' => [
+ *                  'class' => ['me-2']
+ *              ]
  *         ],
  *         [
  *             'buttons' => [
@@ -77,18 +81,18 @@ class ButtonToolbar extends Widget
 
     /**
      * {@inheritdoc}
-     * @throws \Exception
+     * @throws Exception
      */
     public function run()
     {
-        BootstrapAsset::register($this->getView());
+        Bootstrap5Asset::register($this->getView());
         return Html::tag('div', $this->renderButtonGroups(), $this->options);
     }
 
     /**
      * Generates the button groups that compound the toolbar as specified on [[buttonGroups]].
      * @return string the rendering result.
-     * @throws \Exception
+     * @throws Exception
      */
     protected function renderButtonGroups()
     {
