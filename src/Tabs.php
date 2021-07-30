@@ -127,7 +127,7 @@ class Tabs extends Widget
     /**
      * @var string name of a class to use for rendering dropdowns withing this widget. Defaults to [[Dropdown]].
      */
-    public $dropdownClass = 'gnixon\bootstrap5\Dropdown';
+    public $dropdownClass = 'app\widgets\bootstrap5\Dropdown';
 
     /**
      * @var array Tab panes (contents)
@@ -197,7 +197,7 @@ class Tabs extends Widget
                 ArrayHelper::setValue($items[$n], 'options', $headerOptions);
                 if (!isset($item['url'])) {
                     ArrayHelper::setValue($items[$n], 'url', '#' . $options['id']);
-                    ArrayHelper::setValue($items[$n], 'linkOptions.data.toggle', 'tab');
+                    ArrayHelper::setValue($items[$n], 'linkOptions.data.bs-toggle', 'tab');
                     ArrayHelper::setValue($items[$n], 'linkOptions.role', 'tab');
                     ArrayHelper::setValue($items[$n], 'linkOptions.aria-controls', $options['id']);
                     if (!$disabled) {

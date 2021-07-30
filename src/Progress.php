@@ -129,7 +129,7 @@ class Progress extends Widget
      */
     public function run()
     {
-        BootstrapAsset::register($this->getView());
+        Bootstrap5Asset::register($this->getView());
         return $this->renderProgress();
     }
 
