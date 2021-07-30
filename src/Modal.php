@@ -247,11 +247,8 @@ class Modal extends Widget
     {
         if (($closeButton = $this->closeButton) !== false) {
             $tag = ArrayHelper::remove($closeButton, 'tag', 'button');
-            $label = ArrayHelper::remove($closeButton, 'label', Html::tag('span', '&times;', [
-                'aria-hidden' => 'true',
-            ]));
 
-            return Html::tag($tag, $label, $closeButton);
+            return Html::tag($tag, '', $closeButton);
         } else {
             return null;
         }
@@ -284,19 +281,19 @@ class Modal extends Widget
 
         if ($this->closeButton !== false) {
             $this->closeButton = array_merge([
-                'data-dismiss' => 'modal',
-                'class' => 'close',
+                'data-bs-dismiss' => 'modal',
+                'class' => 'btn-close',
                 'type' => 'button',
             ], $this->closeButton);
         }
 
         if ($this->toggleButton !== false) {
             $this->toggleButton = array_merge([
-                'data-toggle' => 'modal',
-                'type' => 'button'
+                'data-bs-toggle' => 'modal',
+                'type' => 'button',
             ], $this->toggleButton);
-            if (!isset($this->toggleButton['data-target']) && !isset($this->toggleButton['href'])) {
-                $this->toggleButton['data-target'] = '#' . $this->options['id'];
+            if (!isset($this->toggleButton['data-bs-target']) && !isset($this->toggleButton['href'])) {
+                $this->toggleButton['data-bs-target'] = '#' . $this->options['id'];
             }
         }
 

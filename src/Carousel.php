@@ -116,7 +116,7 @@ class Carousel extends Widget
         }
         $indicators = [];
         for ($i = 0, $count = count($this->items); $i < $count; $i++) {
-            $options = ['data-target' => '#' . $this->options['id'], 'data-slide-to' => $i];
+            $options = ['data-bs-target' => '#' . $this->options['id'], 'data-bs-slide-to' => $i];
             if ($i === 0) {
                 Html::addCssClass($options, ['activate' => 'active']);
             }
@@ -185,12 +185,12 @@ class Carousel extends Widget
         if (isset($this->controls[0], $this->controls[1])) {
             return Html::a($this->controls[0], '#' . $this->options['id'], [
                     'class' => 'carousel-control-prev',
-                    'data-slide' => 'prev',
+                    'data-bs-slide' => 'prev',
                     'role' => 'button'
                 ]) . "\n"
                 . Html::a($this->controls[1], '#' . $this->options['id'], [
                     'class' => 'carousel-control-next',
-                    'data-slide' => 'next',
+                    'data-bs-slide' => 'next',
                     'role' => 'button'
                 ]);
         } elseif ($this->controls === false) {
