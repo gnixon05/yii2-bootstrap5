@@ -19,6 +19,6 @@ class Bootstrap5PluginAsset extends AssetBundle
         'js/bootstrap.bundle.min.js',
     ];
     public $depends = [
-        'yii\bootstrap5\Bootstrap5Asset',
+        'gnixon\bootstrap5\Bootstrap5Asset',
     ];
 }
