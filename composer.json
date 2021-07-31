@@ -1,7 +1,6 @@
 {
   "name": "gnixon05/yii2-bootstrap5",
   "description": "Twitter Bootstrap 5 extension for the Yii framework",
-  "version": "1.0.1",
   "keywords": ["yii2", "bootstrap", "bootstrap5"],
   "type": "yii2-extension",
   "license": "BSD-3-Clause",
@@ -18,7 +17,6 @@
       "email": "gwinn@gnixon.com"
     }
   ],
-  "minimum-stability": "stable",
   "require": {
     "php": ">=7.3.21",
     "yiisoft/yii2": "~2.0",
