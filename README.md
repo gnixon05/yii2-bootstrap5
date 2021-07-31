@@ -25,13 +25,13 @@ The preferred way to install this extension is through [composer](http://getcomp
 Either run
 
 ```
-php composer.phar require --prefer-dist gwinn-nixon/yii2-bootstrap5
+php composer.phar require --prefer-dist gnixon05/yii2-bootstrap5
 ```
 
 or add
 
 ```
-"gwinn-nixon/yii2-bootstrap5": "dev"
+"gnixon05/yii2-bootstrap5": "dev"
 ```
 
 to the require section of your `composer.json` file.
