@@ -127,7 +127,7 @@ class Tabs extends Widget
     /**
      * @var string name of a class to use for rendering dropdowns withing this widget. Defaults to [[Dropdown]].
      */
-    public $dropdownClass = 'app\widgets\bootstrap5\Dropdown';
+    public $dropdownClass = 'gnixon\bootstrap5\Dropdown';
 
     /**
      * @var array Tab panes (contents)
