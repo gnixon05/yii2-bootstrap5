@@ -30,12 +30,12 @@
   ],
   "autoload": {
     "psr-4": {
-      "gnixon\\bootstrap5\\": "src"
+      "gwinn-nixon\\bootstrap5\\": "src"
     }
   },
   "extra": {
     "branch-alias": {
-      "dev-master": "1.0.x-dev"
+      "dev-master": "1.0.1"
     }
   }
 }
