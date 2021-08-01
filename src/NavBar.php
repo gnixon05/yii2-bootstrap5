@@ -5,7 +5,7 @@
  * @license http://www.yiiframework.com/license/
  */
 
-namespace gnixon\bootstrap5;
+namespace yii\bootstrap5;
 
 use Yii;
 use yii\helpers\ArrayHelper;
@@ -18,8 +18,8 @@ use yii\helpers\ArrayHelper;
  * or [[\yii\widgets\Menu]] to build up such content. For example,
  *
  * ```php
- * use gnixon\bootstrap5\NavBar;
- * use gnixon\bootstrap5\Nav;
+ * use yii\bootstrap5\NavBar;
+ * use yii\bootstrap5\Nav;
  *
  * NavBar::begin(['brandLabel' => 'NavBar Test']);
  * echo Nav::widget([
@@ -184,7 +184,7 @@ class NavBar extends Widget
 
         echo $htmlRun;
 
-        Bootstrap5PluginAsset::register($this->getView());
+        BootstrapPluginAsset::register($this->getView());
     }
 
     /**

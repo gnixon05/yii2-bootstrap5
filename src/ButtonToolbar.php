@@ -5,7 +5,7 @@
  * @license http://www.yiiframework.com/license/
  */
 
-namespace gnixon\bootstrap5;
+namespace yii\bootstrap5;
 
 /**
  * ButtonToolbar Combines sets of button groups into button toolbars for more complex components.
@@ -85,7 +85,7 @@ class ButtonToolbar extends Widget
      */
     public function run()
     {
-        Bootstrap5Asset::register($this->getView());
+        BootstrapAsset::register($this->getView());
         return Html::tag('div', $this->renderButtonGroups(), $this->options);
     }
 

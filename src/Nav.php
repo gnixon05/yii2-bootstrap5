@@ -5,7 +5,7 @@
  * @license http://www.yiiframework.com/license/
  */
 
-namespace gnixon\bootstrap5;
+namespace yii\bootstrap5;
 
 use yii\base\InvalidConfigException;
 use yii\helpers\ArrayHelper;
@@ -100,7 +100,7 @@ class Nav extends Widget
     /**
      * @var string name of a class to use for rendering dropdowns within this widget. Defaults to [[Dropdown]].
      */
-    public $dropdownClass = 'gnixon\bootstrap5\Dropdown';
+    public $dropdownClass = 'yii\bootstrap5\Dropdown';
 
 
     /**
@@ -127,7 +127,7 @@ class Nav extends Widget
      */
     public function run()
     {
-        Bootstrap5Asset::register($this->getView());
+        BootstrapAsset::register($this->getView());
         return $this->renderItems();
     }
 

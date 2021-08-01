@@ -30,7 +30,7 @@
   ],
   "autoload": {
     "psr-4": {
-      "gnixon\\bootstrap5\\": "src"
+      "yii\\bootstrap5\\": "src"
     }
   },
   "extra": {

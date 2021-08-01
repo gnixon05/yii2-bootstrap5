@@ -5,7 +5,7 @@
  * @license http://www.yiiframework.com/license/
  */
 
-namespace gnixon\bootstrap5;
+namespace yii\bootstrap5;
 
 use yii\base\InvalidConfigException;
 use yii\helpers\ArrayHelper;
@@ -84,7 +84,7 @@ class Dropdown extends Widget
      */
     public function run()
     {
-        Bootstrap5PluginAsset::register($this->getView());
+        BootstrapPluginAsset::register($this->getView());
         $this->registerClientEvents();
         return $this->renderItems($this->items, $this->options);
     }
