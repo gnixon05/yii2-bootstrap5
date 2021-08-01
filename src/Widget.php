@@ -5,10 +5,10 @@
  * @license http://www.yiiframework.com/license/
  */
 
-namespace gnixon\bootstrap5;
+namespace yii\bootstrap5;
 
 /**
- * \gnixon\bootstrap5\Widget is the base class for all bootstrap widgets.
+ * \yii\bootstrap5\Widget is the base class for all bootstrap widgets.
  *
  * @author Antonio Ramirez <amigo.cobos@gmail.com>
  * @author Qiang Xue <qiang.xue@gmail.com>

@@ -5,7 +5,7 @@
  * @license http://www.yiiframework.com/license/
  */
 
-namespace gnixon\bootstrap5;
+namespace yii\bootstrap5;
 
 use Yii;
 use yii\base\InvalidConfigException;
@@ -129,7 +129,7 @@ class Progress extends Widget
      */
     public function run()
     {
-        Bootstrap5Asset::register($this->getView());
+        BootstrapAsset::register($this->getView());
         return $this->renderProgress();
     }
 

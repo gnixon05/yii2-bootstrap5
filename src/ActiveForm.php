@@ -5,7 +5,7 @@
  * @license http://www.yiiframework.com/license/
  */
 
-namespace gnixon\bootstrap5;
+namespace yii\bootstrap5;
 
 use Yii;
 use yii\base\InvalidConfigException;
@@ -17,7 +17,7 @@ use yii\base\InvalidConfigException;
  * So for example to render a horizontal form you would:
  *
  * ```php
- * use gnixon\bootstrap5\ActiveForm;
+ * use yii\bootstrap5\ActiveForm;
  *
  * $form = ActiveForm::begin(['layout' => 'horizontal'])
  * ```
@@ -81,7 +81,7 @@ class ActiveForm extends \yii\widgets\ActiveForm
      * @var string the default field class name when calling [[field()]] to create a new field.
      * @see fieldConfig
      */
-    public $fieldClass = 'gnixon\bootstrap5\ActiveField';
+    public $fieldClass = 'yii\bootstrap5\ActiveField';
     /**
      * @var array HTML attributes for the form tag. Default is `[]`.
      */
@@ -91,7 +91,7 @@ class ActiveForm extends \yii\widgets\ActiveForm
      * By choosing a layout, an appropriate default field configuration is applied. This will
      * render the form fields with slightly different markup for each layout. You can
      * override these defaults through [[fieldConfig]].
-     * @see \gnixon\bootstrap5\ActiveField for details on Bootstrap 4 field configuration
+     * @see \yii\bootstrap5\ActiveField for details on Bootstrap 4 field configuration
      */
     public $layout = self::LAYOUT_DEFAULT;
     /**
@@ -130,7 +130,7 @@ class ActiveForm extends \yii\widgets\ActiveForm
 
     /**
      * {@inheritdoc}
-     * @return \gnixon\bootstrap5\ActiveField
+     * @return \yii\bootstrap5\ActiveField
      */
     public function field($model, $attribute, $options = [])
     {

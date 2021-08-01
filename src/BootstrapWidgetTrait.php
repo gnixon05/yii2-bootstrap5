@@ -5,7 +5,7 @@
  * @license http://www.yiiframework.com/license/
  */
 
-namespace gnixon\bootstrap5;
+namespace yii\bootstrap5;
 
 use Yii;
 use yii\helpers\Json;
@@ -69,7 +69,7 @@ trait BootstrapWidgetTrait
     {
         $view = $this->getView();
 
-        Bootstrap5PluginAsset::register($view);
+        BootstrapPluginAsset::register($view);
 
         $id = $this->options['id'];
 

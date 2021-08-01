@@ -5,7 +5,7 @@
  * @license http://www.yiiframework.com/license/
  */
 
-namespace gnixon\bootstrap5;
+namespace yii\bootstrap5;
 
 use yii\helpers\ArrayHelper;
 
@@ -76,7 +76,7 @@ class ButtonGroup extends Widget
      */
     public function run()
     {
-        Bootstrap5Asset::register($this->getView());
+        BootstrapAsset::register($this->getView());
         return Html::tag('div', $this->renderButtons(), $this->options);
     }
 

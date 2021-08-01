@@ -5,7 +5,7 @@
  * @license http://www.yiiframework.com/license/
  */
 
-namespace gnixon\bootstrap5;
+namespace yii\bootstrap5;
 
 use yii\helpers\ArrayHelper;
 
@@ -47,7 +47,7 @@ use yii\helpers\ArrayHelper;
  * Example:
  *
  * ```php
- * use gnixon\bootstrap5\ActiveForm;
+ * use yii\bootstrap5\ActiveForm;
  *
  * $form = ActiveForm::begin(['layout' => 'horizontal']);
  *
@@ -83,7 +83,7 @@ use yii\helpers\ArrayHelper;
  * ActiveForm::end();
  * ```
  *
- * @see \gnixon\bootstrap5\ActiveForm
+ * @see \yii\bootstrap5\ActiveForm
  * @see https://getbootstrap.com/docs/4.5/components/forms/
  *
  * @author Michael Härtl <haertl.mike@gmail.com>

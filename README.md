@@ -43,5 +43,5 @@ For example, the following
 single line of code in a view file would render a Bootstrap Progress plugin:
 
 ```php
-<?= gnixon\bootstrap5\Progress::widget(['percent' => 60, 'label' => 'test']) ?>
+<?= yii\bootstrap5\Progress::widget(['percent' => 60, 'label' => 'test']) ?>
 ```
