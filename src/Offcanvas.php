@@ -203,8 +203,9 @@ class Offcanvas extends Widget
      */
     protected function initOptions()
     {
+
         $this->options = array_merge([
-            'class' => 'offcanvas-start',
+            'class' => 'offcanvas-'.($this->location??'start'),
             'tabindex' => -1,
         ], $this->options);
         Html::addCssClass($this->options, ['widget' => 'offcanvas']);
